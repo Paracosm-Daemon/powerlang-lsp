@@ -5,12 +5,11 @@ import { PowerlangHandle } from "./powerlangHandle";
 // #endregion
 // #region Constants
 export const INTERNAL_NAME = "vscode-powerlang";
-const VERSION = require("../package.json").version;
 // #endregion
 // #region Functions
 export function activate(context: vscode.ExtensionContext): void
 {
-	console.log(`Loading ${INTERNAL_NAME} v${VERSION}`);
+	console.log(`Loading ${INTERNAL_NAME} v${context.extension.packageJSON.version}`);
 	console.time(INTERNAL_NAME);
 	// Initialize all providers
 	new PowerlangHandle(context);
