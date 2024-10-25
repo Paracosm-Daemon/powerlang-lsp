@@ -4,8 +4,8 @@ import * as vscode from "vscode";
 import { PowerlangHandle } from "./powerlangHandle";
 // #endregion
 // #region Constants
-const VERSION = require("../package.json").version;
 export const INTERNAL_NAME = "vscode-powerlang";
+const VERSION = require("../package.json").version;
 // #endregion
 // #region Functions
 export function activate(context: vscode.ExtensionContext): void

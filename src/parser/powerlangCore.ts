@@ -52,10 +52,6 @@ export enum ErrorCodes
 }
 // #endregion
 // #region Constants
-const REGEX_DIRECTIVE_BREAK: RegExp = /(;|\n| )+/g; // /[^;\n ]*/g;
-const REGEX_CARRIAGE: RegExp = /\r/g;
-const REGEX_SEARCH: RegExp = /\S+/;
-
 export const VARIABLE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_-.1234567890";
 export const DIRECTIVE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ@-";
 
@@ -78,6 +74,10 @@ export const VALID_FLAGS: string[] = [
 	"UseIPathForEvents",
 	"UseVSV3"
 ];
+
+const REGEX_DIRECTIVE_BREAK: RegExp = /(;|\n| )+/g; // /[^;\n ]*/g;
+const REGEX_CARRIAGE: RegExp = /\r/g;
+const REGEX_SEARCH: RegExp = /\S+/;
 // #endregion
 // #region Classes
 export class PowerlangCore
