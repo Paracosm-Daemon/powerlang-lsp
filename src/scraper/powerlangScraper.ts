@@ -1,6 +1,8 @@
 "use strict";
 // #region Imports
 import * as vscode from "vscode";
+import * as path from "path";
+import * as fs from "fs";
 
 import { PowerlangProvider } from "../powerlangProvider";
 import { PowerlangHandle } from "../powerlangHandle";
@@ -17,12 +19,18 @@ export class PowerlangScraper extends PowerlangProvider
 	}
 	// #endregion
 	// #region Private
+	private _regenerateGlobals(): void
+	{
+		console.log("TODO: Make this command work", this);
+
+		const resourcesPath: string = this.handle.context.extensionPath + path.sep + "resources";
+		console.log(fs.existsSync(resourcesPath));
+
+		this.handle.showErrorMessage("Resources path doesn't exist");
+	}
 	private _registerEvents(): void
 	{
-		vscode.commands.registerCommand("powerlang.regenerateGlobals", (): void =>
-		{
-			console.log("TODO: Make this command work");
-		});
+		vscode.commands.registerCommand("powerlang.regenerateGlobals", this._regenerateGlobals, this);
 	}
 	// #endregion
 	// #endregion
