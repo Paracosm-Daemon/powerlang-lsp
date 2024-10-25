@@ -1,0 +1,82 @@
+{
+	"if statement": {
+		"prefix": [
+			"if"
+		],
+		"body": [
+			"if ${1} {",
+			"\t${0}",
+			"}"
+		]
+	},
+	"else statement": {
+		"prefix": [
+			"else"
+		],
+		"body": [
+			"else {",
+			"\t${0}",
+			"}"
+		]
+	},
+	"for loop": {
+		"prefix": [
+			"for"
+		],
+		"body": [
+			"for ${1:index} = ${2:1}, ${3:10}, ${4:1} {",
+			"\t${0}",
+			"}"
+		]
+	},
+	"table loop": {
+		"prefix": [
+			"tableloop"
+		],
+		"body": [
+			"tableloop ${1:key}, ${2:value} in ${3:table} {",
+			"\t${0}",
+			"}"
+		]
+	},
+	"while loop": {
+		"prefix": [
+			"while"
+		],
+		"body": [
+			"while ${1} {",
+			"\t${0}",
+			"}"
+		]
+	},
+	"function": {
+		"prefix": [
+			"function"
+		],
+		"body": [
+			"function ${1}(${2}) {",
+			"\t${0}",
+			"}"
+		]
+	},
+	"event": {
+		"prefix": [
+			"event"
+		],
+		"body": [
+			"event ${1}(${2}) {",
+			"\t${0}",
+			"}"
+		]
+	},
+	"thread": {
+		"prefix": [
+			"thread"
+		],
+		"body": [
+			"thread {",
+			"\t${0}",
+			"}"
+		]
+	}
+}

@@ -1,0 +1,872 @@
+[
+	{
+		"name": "compiler",
+		"api": [
+			{
+				"name": "InsertBlock",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "BlockName"
+					},
+					{
+						"type": "string",
+						"name": "BlockID"
+					},
+					{
+						"type": "tuple",
+						"name": "args"
+					}
+				],
+				"return": []
+			},
+			{
+				"name": "InsertBlockConnectedLast",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "BlockName"
+					},
+					{
+						"type": "string",
+						"name": "BlockID"
+					},
+					{
+						"type": "tuple",
+						"name": "args"
+					}
+				],
+				"return": []
+			},
+			{
+				"name": "version",
+				"parameters": [],
+				"return": [
+					"string"
+				]
+			},
+			{
+				"name": "credits",
+				"parameters": [],
+				"return": [
+					"string"
+				]
+			}
+		]
+	},
+	{
+		"name": "math",
+		"api": [
+			{
+				"name": "abs",
+				"description": "Returns the absolute value of `x`.",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "acos",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "asin",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "atan",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "ceil",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "cos",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "cosh",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "deg",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "exp",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "floor",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "frexp",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "log10",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "modf",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "rad",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "randomseed",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "seed"
+					}
+				],
+				"return": []
+			},
+			{
+				"name": "round",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "sign",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "sin",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "sinh",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "sqrt",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "tan",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "tanh",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "atan2",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					},
+					{
+						"type": "number",
+						"name": "y"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "fmod",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "idexp",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "log",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "max",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "min",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "pow",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "base"
+					},
+					{
+						"type": "number",
+						"name": "exponent"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "random",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "min"
+					},
+					{
+						"type": "number",
+						"name": "max"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "clamp",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "value"
+					},
+					{
+						"type": "number",
+						"name": "min"
+					},
+					{
+						"type": "number",
+						"name": "max"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "noise",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "x"
+					}
+				],
+				"return": [
+					"number"
+				]
+			}
+		]
+	},
+	{
+		"name": "string",
+		"api": [
+			{
+				"name": "split",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "string"
+					},
+					{
+						"type": "string",
+						"name": "separator"
+					}
+				],
+				"return": [
+					"string"
+				]
+			},
+			{
+				"name": "find",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "string"
+					},
+					{
+						"type": "string",
+						"name": "pattern"
+					}
+				],
+				"return": [
+					"string"
+				]
+			},
+			{
+				"name": "sub",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "string"
+					},
+					{
+						"type": "number",
+						"name": "start"
+					},
+					{
+						"type": "number",
+						"name": "end"
+					}
+				],
+				"return": [
+					"string"
+				]
+			},
+			{
+				"name": "gsub",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "string"
+					},
+					{
+						"type": "string",
+						"name": "pattern"
+					},
+					{
+						"type": "string",
+						"name": "replacement"
+					}
+				],
+				"return": [
+					"string"
+				]
+			},
+			{
+				"name": "length",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "string"
+					}
+				],
+				"return": [
+					"number"
+				]
+			},
+			{
+				"name": "upper",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "string"
+					}
+				],
+				"return": [
+					"string"
+				]
+			},
+			{
+				"name": "lower",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "string"
+					}
+				],
+				"return": [
+					"string"
+				]
+			},
+			{
+				"name": "filter",
+				"parameters": [
+					{
+						"type": "string",
+						"name": "string"
+					}
+				],
+				"return": [
+					"string"
+				]
+			}
+		]
+	},
+	{
+		"name": "table",
+		"api": [
+			{
+				"name": "create",
+				"parameters": [
+					{
+						"type": "tuple",
+						"name": "args"
+					}
+				],
+				"return": [
+					"table"
+				]
+			},
+			{
+				"name": "append",
+				"parameters": [
+					{
+						"type": "table",
+						"name": "table"
+					},
+					{
+						"type": "any",
+						"name": "value"
+					}
+				],
+				"return": []
+			},
+			{
+				"name": "insert",
+				"parameters": [
+					{
+						"type": "table",
+						"name": "table"
+					},
+					{
+						"type": "any",
+						"name": "value"
+					},
+					{
+						"type": "number",
+						"name": "position"
+					}
+				],
+				"return": []
+			},
+			{
+				"name": "remove",
+				"parameters": [
+					{
+						"type": "table",
+						"name": "table"
+					},
+					{
+						"type": "number",
+						"name": "position"
+					}
+				],
+				"return": []
+			},
+			{
+				"name": "find",
+				"parameters": [
+					{
+						"type": "table",
+						"name": "table"
+					},
+					{
+						"type": "any",
+						"name": "value"
+					},
+					{
+						"type": "number?",
+						"name": "init"
+					}
+				],
+				"return": [
+					"any"
+				]
+			},
+			{
+				"name": "sort",
+				"parameters": [
+					{
+						"type": "table",
+						"name": "table"
+					},
+					{
+						"type": "function?",
+						"name": "order"
+					}
+				],
+				"return": []
+			},
+			{
+				"name": "length",
+				"parameters": [
+					{
+						"type": "table",
+						"name": "table"
+					}
+				],
+				"return": [
+					"number"
+				]
+			}
+		]
+	},
+	{
+		"name": "retrostudio",
+		"api": [
+			{
+				"name": "InsertModel",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "ID"
+					},
+					{
+						"type": "object",
+						"name": "Parent"
+					}
+				],
+				"return": [
+					"boolean",
+					"object"
+				]
+			},
+			{
+				"name": "IsGameLoaded",
+				"parameters": [],
+				"return": [
+					"Answer"
+				]
+			},
+			{
+				"name": "GetRobloxVersion",
+				"parameters": [],
+				"return": [
+					"Answer"
+				]
+			},
+			{
+				"name": "IsPlayingSolo",
+				"parameters": [],
+				"return": [
+					"Answer"
+				]
+			},
+			{
+				"name": "IsGuest",
+				"parameters": [
+					{
+						"type": "object",
+						"name": "Player"
+					}
+				],
+				"return": [
+					"Answer"
+				]
+			},
+			{
+				"name": "IsTouchscreen",
+				"parameters": [],
+				"return": [
+					"Answer"
+				]
+			},
+			{
+				"name": "OsTime",
+				"parameters": [],
+				"return": [
+					"Answer"
+				]
+			},
+			{
+				"name": "OsClock",
+				"parameters": [],
+				"return": [
+					"Answer"
+				]
+			},
+			{
+				"name": "OsDate",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "Time"
+					},
+					{
+						"type": "string",
+						"name": "Timezone"
+					}
+				],
+				"return": [
+					"DateTable"
+				]
+			},
+			{
+				"name": "IsFriendsWith",
+				"parameters": [
+					{
+						"type": "object",
+						"name": "Player"
+					},
+					{
+						"type": "number",
+						"name": "UserId"
+					}
+				],
+				"return": [
+					"Result"
+				]
+			},
+			{
+				"name": "IsInGroup",
+				"parameters": [
+					{
+						"type": "object",
+						"name": "Player"
+					},
+					{
+						"type": "number",
+						"name": "GroupId"
+					}
+				],
+				"return": [
+					"Result"
+				]
+			},
+			{
+				"name": "GetRankInGroup",
+				"parameters": [
+					{
+						"type": "object",
+						"name": "Player"
+					},
+					{
+						"type": "number",
+						"name": "GroupId"
+					}
+				],
+				"return": [
+					"Result"
+				]
+			},
+			{
+				"name": "GetStudioSelection",
+				"parameters": [],
+				"return": [
+					"Selection"
+				]
+			},
+			{
+				"name": "ReloadPlace",
+				"parameters": [],
+				"return": []
+			},
+			{
+				"name": "InsertRetrostudioAvatar",
+				"parameters": [
+					{
+						"type": "number",
+						"name": "ID"
+					},
+					{
+						"type": "CFrame",
+						"name": "CFramed"
+					}
+				],
+				"return": [
+					"Model"
+				]
+			},
+			{
+				"name": "DumpMemory",
+				"parameters": [],
+				"return": []
+			}
+		]
+	}
+]

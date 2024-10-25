@@ -1,0 +1,128 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Powerlang",
+	"scopeName": "source.powerlang",
+	"fileTypes": [
+		"pow.lua",
+		"plang",
+		"powl",
+		"pow"
+	],
+	"patterns": [
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#numbers"
+		},
+		{
+			"include": "#globals"
+		},
+		{
+			"include": "#entities"
+		}
+	],
+	"repository": {
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-dash.powerlang",
+					"match": "^\\s*--.*"
+				}
+			]
+		},
+		"keywords": {
+			"patterns": [
+				{
+					"match": "(?i)\\b(BREAK|CONTINUE|ELSE|FOR|IF|IN|TABLELOOP|RETURN|WHILE)\\b",
+					"name": "keyword.control.powerlang"
+				},
+				{
+					"match": "(?i)\\b(EVENT|FUNCTION|THREAD)\\b",
+					"name": "keyword.control.powerlang"
+				},
+				{
+					"name": "keyword.control.powerlang",
+					"match": "=|==|~=|<|>|\\+|\\-|\\/|\\*|\\%|\\^|\\.\\."
+				},
+				{
+					"name": "constant.language.powerlang",
+					"match": "\\b(true|false|nil)\\b"
+				},
+				{
+					"name": "keyword.control.powerlang",
+					"match": "\\b(and|not|or)\\b"
+				},
+				{
+					"name": "support.function.powerlang",
+					"match": "([a-zA-Z_-]+\\w+)\\s*\\("
+				},
+				{
+					"name": "markup.bold.powerlang",
+					"match": "(?i)@FLAG([^\\n;]*)"
+				}
+			]
+		},
+		"strings": {
+			"patterns": [
+				{
+					"name": "string.quoted.double.powerlang",
+					"begin": "\"",
+					"end": "\"",
+					"patterns": [
+						{
+							"name": "constant.character.escape.powerlang",
+							"match": "\\\\(\\d+|.)"
+						}
+					]
+				}
+			]
+		},
+		"numbers": {
+			"patterns": [
+				{
+					"name": "constant.numeric.integer.powerlang",
+					"match": "\\b(\\d+)\\b"
+				},
+				{
+					"name": "constant.numeric.decimal.powerlang",
+					"match": "\\b(\\d+\\.\\d+)\\b"
+				}
+			]
+		},
+		"globals": {
+			"patterns": [
+				{
+					"match": "\\b(Ray|Debris|Players|DataStore|Pathfinding|TweenService|PhysicsService)\\b",
+					"name": "support.class.powerlang"
+				},
+				{
+					"match": "\\b(UDim2|CFrame|Color3|Vector2|Vector3|Instance|BrickColor|NumberRange)\\b",
+					"name": "support.class.powerlang"
+				},
+				{
+					"match": "\\b(math|table|string|compiler|retrostudio)\\b",
+					"name": "support.class.powerlang"
+				},
+				{
+					"match": "\\b(game|script|workspace)\\b",
+					"name": "support.class.powerlang"
+				}
+			]
+		},
+		"entities": {
+			"patterns": [
+				{
+					"match": "[a-zA-Z_]+\\w*",
+					"name": "variable.name.powerlang"
+				}
+			]
+		}
+	}
+}

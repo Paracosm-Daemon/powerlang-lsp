@@ -1,0 +1,111 @@
+{
+	"name": "vscode-powerlang",
+	"displayName": "Powerlang",
+	"version": "1.0.0",
+	"publisher": "Paracosm-Daemon",
+	"description": "Powerlang support and debugging for Visual Studio Code",
+	"author": "Oliver Starveldt",
+	"categories": [
+		"Programming Languages",
+		"Snippets"
+	],
+	"icon": "images/icon.png",
+	"license": "MIT",
+	"engines": {
+		"vscode": "^1.51.0"
+	},
+	"main": "./out/extension.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Paracosm-Daemon/powerlang-lsp.git"
+	},
+	"contributes": {
+		"languages": [
+			{
+				"id": "powerlang",
+				"aliases": [
+					"Powerlang",
+					"powerlang",
+					"plang",
+					"powl",
+					"pow"
+				],
+				"extensions": [
+					".pow.lua",
+					".plang",
+					".powl",
+					".pow"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"commands": [
+			{
+				"command": "powerlang.regenerateGlobals",
+				"title": "Powerlang: Regenerate Globals",
+				"shortTitle": "Regen Globals"
+			}
+		],
+		"configuration": {
+			"title": "Powerlang",
+			"properties": {
+				"powerlang.parser.timeoutDuration": {
+					"markdownDescription": "The duration between scanning for changes in milliseconds",
+					"type": "integer",
+					"default": 500
+				},
+				"powerlang.diagnostics.enableDiagnostics": {
+					"markdownDescription": "Enables or disables diagnostics",
+					"type": "boolean",
+					"default": true
+				}
+			}
+		},
+		"grammars": [
+			{
+				"language": "powerlang",
+				"scopeName": "source.powerlang",
+				"path": "./syntaxes/powerlang.tmLanguage.json"
+			},
+			{
+				"scopeName": "markdown.powerlang.codeblock",
+				"path": "./syntaxes/codeblock.json",
+				"injectTo": [
+					"text.html.markdown"
+				],
+				"embeddedLanguages": {
+					"meta.embedded.block.powerlang": "powerlang"
+				}
+			}
+		],
+		"snippets": [
+			{
+				"language": "powerlang",
+				"path": "./snippets/snippets.json"
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "eslint src --ext ts",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint"
+	},
+	"devDependencies": {
+		"@types/glob": "^8.1.0",
+		"@types/mocha": "^10.0.9",
+		"@types/node": "^22.7.9",
+		"@types/vscode": "^1.51.0",
+		"@typescript-eslint/eslint-plugin": "^8.11.0",
+		"@typescript-eslint/parser": "^8.11.0",
+		"bootstrap-amd": "^1.0.3",
+		"bootstrap-fork": "^3.3.6",
+		"child_process": "^1.0.2",
+		"eslint": "^9.13.0",
+		"glob": "^11.0.0",
+		"mocha": "^10.7.3",
+		"typescript": "^5.6.3",
+		"vscode-test": "^1.4.1"
+	}
+}

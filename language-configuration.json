@@ -1,0 +1,34 @@
+{
+    // Describes how comments for a language work.
+    "comments": {
+        "lineComment": "--"
+    },
+    // The language's brackets. This configuration implicitly affects pressing Enter around these brackets.
+    "brackets": [
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"]
+    ],
+    // Describes indentation rules for a language.
+    "indentationRules": {
+        // If a line matches this pattern, then all the lines after it should be indented once (until another rule matches).
+        "increaseIndentPattern": "^\\s*(event|function|tableloop|if|for|while|thread)",
+        // If a line matches this pattern, then all the lines after it should be unindented once (until another rule matches).
+        "decreaseIndentPattern": "^\\s*}\\s+(event|function|tableloop|if|for|while|thread)",
+    },
+    // symbols that are auto closed when typing
+    "autoClosingPairs": [
+        { "open": "{", "close": "}" },
+        { "open": "[", "close": "]" },
+        { "open": "(", "close": ")" },
+        { "open": "`", "close": "`", "notIn": ["string", "comment"] },
+        { "open": "\"", "close": "\"", "notIn": ["string"] }
+    ],
+    // symbols that can be used to surround a selection
+    "surroundingPairs": [
+        ["{", "}"],
+        ["[", "]"],
+        ["(", ")"],
+        ["\"", "\""]
+    ]
+}

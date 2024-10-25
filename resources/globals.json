@@ -1,0 +1,88 @@
+[
+	{
+		"name": "print",
+		"parameters": [
+			{
+				"type": "any",
+				"name": "value"
+			}
+		],
+		"return": []
+	},
+	{
+		"name": "warn",
+		"parameters": [
+			{
+				"type": "any",
+				"name": "value"
+			}
+		],
+		"return": []
+	},
+	{
+		"name": "tonumber",
+		"parameters": [
+			{
+				"type": "string",
+				"name": "value"
+			}
+		],
+		"return": [
+			"number?"
+		]
+	},
+	{
+		"name": "tostring",
+		"parameters": [
+			{
+				"type": "any",
+				"name": "value"
+			}
+		],
+		"return": [
+			"string"
+		]
+	},
+	{
+		"name": "typeof",
+		"parameters": [
+			{
+				"type": "any",
+				"name": "value"
+			}
+		],
+		"return": [
+			"string"
+		]
+	},
+	{
+		"name": "tick",
+		"parameters": [],
+		"return": [
+			"number"
+		]
+	},
+	{
+		"name": "wait",
+		"description": "Waits `x` amount of seconds before running the next block.",
+		"parameters": [
+			{
+				"type": "number",
+				"name": "x"
+			}
+		],
+		"return": [
+			"number"
+		]
+	},
+	{
+		"name": "spawn",
+		"parameters": [
+			{
+				"type": "function",
+				"name": "func"
+			}
+		],
+		"return": []
+	}
+]
