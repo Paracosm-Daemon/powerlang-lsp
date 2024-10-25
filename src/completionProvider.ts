@@ -4,9 +4,10 @@ import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
 
-import { LOGIC_GATES, VALID_FLAGS } from "./parser/powerlangCore";
 import { PowerlangProvider } from "./powerlangProvider";
 import { PowerlangHandle } from "./powerlangHandle";
+
+import { LOGIC_GATES, VALID_FLAGS } from "./parser/powerlangCore";
 // #endregion
 // #region Types
 type PowerlangParameter = {

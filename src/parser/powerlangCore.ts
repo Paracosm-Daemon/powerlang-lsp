@@ -4,13 +4,6 @@
 	This follows the same rules as the Core lua from the plugin
 **/
 // TODO: I probably need to redo a lot of this stuff and research the tokenizer more because I have no idea what SharedContext and Context is
-// #region Imports
-import * as vscode from "vscode";
-import { INTERNAL_NAME } from "../extension";
-
-import { declare, handleDirective } from "./powerlangDirectives";
-import { PowerlangPointer } from "./powerlangPointer";
-// #endregion
 // #region Enums
 enum TokenTypes
 {
@@ -51,7 +44,7 @@ export enum ErrorCodes
 	NestedThread,
 }
 // #endregion
-// #region Constants
+// #region Exports
 export const VARIABLE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_-.1234567890";
 export const DIRECTIVE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ@-";
 
@@ -74,7 +67,16 @@ export const VALID_FLAGS: string[] = [
 	"UseIPathForEvents",
 	"UseVSV3"
 ];
+// #endregion
+// #region Imports
+import * as vscode from "vscode";
 
+import { declare, handleDirective } from "./powerlangDirectives";
+import { PowerlangPointer } from "./powerlangPointer";
+
+import { INTERNAL_NAME } from "../extension";
+// #endregion
+// #region Constants
 const REGEX_DIRECTIVE_BREAK: RegExp = /(;|\n| )+/g; // /[^;\n ]*/g;
 const REGEX_CARRIAGE: RegExp = /\r/g;
 const REGEX_SEARCH: RegExp = /\S+/;

@@ -2,9 +2,10 @@
 // #region Imports
 import * as vscode from "vscode";
 
-import { PowerlangProvider } from "../powerlangProvider";
-import { PowerlangHandle } from "../powerlangHandle";
-import { PowerlangCore } from "./powerlangCore";
+import { PowerlangProvider } from "./powerlangProvider";
+import { PowerlangHandle } from "./powerlangHandle";
+
+import { PowerlangCore } from "./parser/powerlangCore";
 // #endregion
 // #region Classes
 export class PowerlangParser extends PowerlangProvider
