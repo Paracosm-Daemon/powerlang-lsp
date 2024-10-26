@@ -22,7 +22,25 @@ const REGEX_VARIABLE: RegExp = /[A-Z_]+[A-Z0-9_-]*/i;
 const REGEX_FLAG: RegExp = /@FLAG\s+/i;
 const REGEX_BREAK: RegExp = /[\n;]/g;
 
-const FLAG_ANNOTATION_ITEM: vscode.CompletionItem = new vscode.CompletionItem("flag", vscode.CompletionItemKind.Enum);
+const FLAG_ANNOTATION_ITEMS: vscode.CompletionItem[] = [ new vscode.CompletionItem("flag", vscode.CompletionItemKind.Enum) ];
+const TABLELOOP_ITEMS: vscode.CompletionItem[] = [ new vscode.CompletionItem("in", vscode.CompletionItemKind.Keyword) ];
+
+const GLOBAL_ITEMS: vscode.CompletionItem[] = [
+	new vscode.CompletionItem("tableloop", vscode.CompletionItemKind.Keyword),
+	new vscode.CompletionItem("for", vscode.CompletionItemKind.Keyword),
+
+	new vscode.CompletionItem("function", vscode.CompletionItemKind.Keyword),
+	new vscode.CompletionItem("thread", vscode.CompletionItemKind.Keyword),
+	new vscode.CompletionItem("event", vscode.CompletionItemKind.Keyword),
+
+	new vscode.CompletionItem("while", vscode.CompletionItemKind.Keyword),
+	new vscode.CompletionItem("if", vscode.CompletionItemKind.Keyword),
+
+	new vscode.CompletionItem("workspace", vscode.CompletionItemKind.Module),
+	new vscode.CompletionItem("script", vscode.CompletionItemKind.Module),
+	new vscode.CompletionItem("game", vscode.CompletionItemKind.Module)
+];
+
 const OPERATION_ITEMS: vscode.CompletionItem[] = LOGIC_GATES.map(
 	(value: string): vscode.CompletionItem =>
 		new vscode.CompletionItem(value, vscode.CompletionItemKind.Keyword)
@@ -87,6 +105,8 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 	// #region Private
 	private _includeFlagAnnotation(beforeCursor: string): boolean { return beforeCursor.trimStart().startsWith("@"); }
 	private _includeFlags(beforeCursor: string): boolean { return beforeCursor.search(REGEX_FLAG) >= 0; }
+	// TODO: I can make this a little more complex, I just need to figure out variable autocomplete (tokenizer!!!)
+	private _includeTableloop(beforeCursor: string): boolean { return beforeCursor.startsWith("tableloop"); }
 	// (if | while) and | or | not
 	private _includeConditionals(beforeCursor: string): boolean { return beforeCursor.search(REGEX_CONDITIONALS) >= 0; }
 	// variable = nil | true | false
@@ -96,7 +116,8 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 	{
 		const completionList = new vscode.CompletionList();
 
-		if (provider._includeConditionals(term)) completionList.items.push(...BOOLEAN_ITEMS, ...OPERATION_ITEMS);
+		if (provider._includeTableloop(term)) completionList.items.push(...TABLELOOP_ITEMS);
+		else if (provider._includeConditionals(term)) completionList.items.push(...BOOLEAN_ITEMS, ...OPERATION_ITEMS);
 		else if (provider._includeBooleans(term)) completionList.items.push(...BOOLEAN_ITEMS);
 		else completionList.items.push(...provider._globalItems);
 
@@ -124,13 +145,12 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 	// For flags
 	private _provideFlagCompletion(provider: PowerlangCompletionProvider, _document: vscode.TextDocument, _position: vscode.Position, _cancel: vscode.CancellationToken, _context: vscode.CompletionContext, term: string): vscode.CompletionList
 	{
-		const completionList = new vscode.CompletionList();
 		if (provider._includeFlagAnnotation(term))
 		{
-			if (provider._includeFlags(term)) completionList.items.push(...FLAG_ITEMS);
-			else completionList.items.push(FLAG_ANNOTATION_ITEM);
+			if (provider._includeFlags(term)) return new vscode.CompletionList(FLAG_ITEMS);
+			return new vscode.CompletionList(FLAG_ANNOTATION_ITEMS);
 		}
-		return completionList;
+		return new vscode.CompletionList();
 	}
 
 	private _loadGlobals(registered: RegeneratedEventParams): void
@@ -139,20 +159,7 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 		const powerlangGlobals: PowerlangAPI[] = registered.globals;
 		// Add all global libraries from the globals.json file into autocomplete
 		this._globalItems = [
-			new vscode.CompletionItem("tableloop", vscode.CompletionItemKind.Keyword),
-			new vscode.CompletionItem("for", vscode.CompletionItemKind.Keyword),
-
-			new vscode.CompletionItem("function", vscode.CompletionItemKind.Keyword),
-			new vscode.CompletionItem("thread", vscode.CompletionItemKind.Keyword),
-			new vscode.CompletionItem("event", vscode.CompletionItemKind.Keyword),
-
-			new vscode.CompletionItem("while", vscode.CompletionItemKind.Keyword),
-			new vscode.CompletionItem("if", vscode.CompletionItemKind.Keyword),
-
-			new vscode.CompletionItem("workspace", vscode.CompletionItemKind.Module),
-			new vscode.CompletionItem("script", vscode.CompletionItemKind.Module),
-			new vscode.CompletionItem("game", vscode.CompletionItemKind.Module),
-
+			...GLOBAL_ITEMS,
 			...powerlangGlobals.map(
 				(globalFunction: PowerlangAPI): vscode.CompletionItem =>
 					new vscode.CompletionItem(globalFunction.name, vscode.CompletionItemKind.Function)
