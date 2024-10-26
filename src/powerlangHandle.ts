@@ -6,6 +6,10 @@ import * as fs from "fs";
 // #endregion
 // #region Exports
 export const FILE_ENCODING: BufferEncoding & fs.WriteFileOptions = "utf-8";
+
+export const LIBRARY_COLORING_RESOURCE_NAME: string = "libraryColoring.json";
+export const LIBRARY_RESOURCE_NAME: string = "libraries.json";
+export const GLOBALS_RESOURCE_NAME: string = "globals.json";
 // #endregion
 // #region Modules
 import { PowerlangCompletionProvider } from "./completionProvider";
