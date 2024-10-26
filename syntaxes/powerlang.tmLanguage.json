@@ -3,6 +3,7 @@
 	"name": "Powerlang",
 	"scopeName": "source.powerlang",
 	"fileTypes": [
+		"powerlang",
 		"pow.lua",
 		"plang",
 		"powl",

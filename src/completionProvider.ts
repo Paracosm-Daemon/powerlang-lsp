@@ -7,7 +7,7 @@ import * as fs from "fs";
 import { PowerlangAPI, PowerlangGlobal } from "./powerlangAPI";
 import { PowerlangProvider } from "./powerlangProvider";
 
-import { PowerlangHandle, RegeneratedEventParams, FILE_ENCODING } from "./powerlangHandle";
+import { PowerlangHandle, RegeneratedEventParams, FILE_ENCODING, GLOBALS_RESOURCE_NAME, LIBRARY_RESOURCE_NAME, LIBRARY_COLORING_RESOURCE_NAME } from "./powerlangHandle";
 import { LOGIC_GATES, VALID_FLAGS } from "./parser/powerlangCore";
 // #endregion
 // #region Types
@@ -187,8 +187,8 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 	{
 		this.handle.globalsRegenerated(this._loadGlobals, this);
 
-		const librariesFile: number = fs.openSync(this.handle.getResourcePath("libraries.json"), "r");
-		const globalsFile: number = fs.openSync(this.handle.getResourcePath("globals.json"), "r");
+		const librariesFile: number = fs.openSync(this.handle.getResourcePath(LIBRARY_RESOURCE_NAME), "r");
+		const globalsFile: number = fs.openSync(this.handle.getResourcePath(GLOBALS_RESOURCE_NAME), "r");
 
 		const librariesJSON: string = fs.readFileSync(librariesFile, { encoding: FILE_ENCODING });
 		const globalsJSON: string = fs.readFileSync(globalsFile, { encoding: FILE_ENCODING });

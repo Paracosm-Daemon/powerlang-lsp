@@ -8,7 +8,7 @@ import * as fs from "fs";
 import { PowerlangAPI, PowerlangGlobal, PowerlangParameter } from "./powerlangAPI";
 import { PowerlangProvider } from "./powerlangProvider";
 
-import { PowerlangHandle, RegeneratedEventParams, FILE_ENCODING } from "./powerlangHandle";
+import { PowerlangHandle, RegeneratedEventParams, FILE_ENCODING, GLOBALS_RESOURCE_NAME, LIBRARY_RESOURCE_NAME, LIBRARY_COLORING_RESOURCE_NAME } from "./powerlangHandle";
 // #endregion
 // #region Types
 type ScrapeLink = {
@@ -28,8 +28,9 @@ const API_REQUEST_OPTIONS: RequestInit = {
 		"Cookie": "__gitbook_cookie_granted=no"
 	}
 };
-// TODO: Scrape for instance and global functions
+// TODO: Scrape for instance functions
 const BLACKLISTED_LABELS: string[] = [ "Name", "Function", "Description" ];
+const TAG_RESTART: string = "Restart VSCode";
 
 const CLASS_PARAGRAPH: string = "mx-auto decoration-primary/6 w-full max-w-[unset]";
 const CLASS_TABLE: string = "w-full space-y-2 lg:space-y-3 leading-normal";
@@ -201,6 +202,7 @@ export class PowerlangScraper extends PowerlangProvider
 					progress.report({ increment: 0 });
 					// #region Library
 					const libraryReferences: PowerlangGlobal[] = [];
+					const libraryNames: string[] = [];
 					// Fetch to the original endpoint first to grab all of the valid libraries
 					const apiResponse: Response = await fetch(API_ORIGIN + BASE_SCRAPE, API_REQUEST_OPTIONS);
 
@@ -240,10 +242,13 @@ export class PowerlangScraper extends PowerlangProvider
 								|| href.endsWith("/special-types") // Title, disregard
 								|| href.endsWith("/services")) // Title, disregard
 								return;
+
+							const libraryName: string = link.text;
 							scrapingLinks.push({
 								reference: API_ORIGIN + href,
-								library: link.text
+								library: libraryName
 							});
+							libraryNames.push(libraryName);
 						});
 
 						const linksToScrape: number = scrapingLinks.length;
@@ -252,9 +257,6 @@ export class PowerlangScraper extends PowerlangProvider
 						const progressScrapeIncrement: number = (POST_LIBRARY_PERCENTAGE - PRE_LIBRARY_INCREMENT) / linksToScrape;
 						for (let scrapeIndex: number = 0; scrapeIndex < linksToScrape; scrapeIndex++)
 						{
-							if (token.isCancellationRequested)
-								return;
-
 							const currentLink: ScrapeLink = scrapingLinks[ scrapeIndex ];
 							const libraryName: string = currentLink.library;
 
@@ -269,15 +271,15 @@ export class PowerlangScraper extends PowerlangProvider
 								api: await this._scrapeFunctions(currentLink),
 								name: libraryName
 							});
+							if (token.isCancellationRequested)
+								return;
 						}
 						break;
 					}
 					// #endregion
-					if (token.isCancellationRequested)
-						return;
 					// #region Globals
 					progress.report({
-						message: "Scraping globals",
+						message: "Scraping global functions",
 						increment: PRE_GLOBALS_INCREMENT
 					});
 
@@ -285,27 +287,60 @@ export class PowerlangScraper extends PowerlangProvider
 						reference: API_ORIGIN + GLOBAL_SCRAPE,
 						library: "Globals"
 					});
+
 					console.log("Scraped globals", globalReferences);
-					// #endregion
 					if (token.isCancellationRequested)
 						return;
+					// #endregion
 					// #region Write
 					progress.report({
 						message: "Writing to resource files",
 						increment: PRE_WRITE_INCREMENT
 					});
 					// First, open the files
-					const librariesFile: number = fs.openSync(this.handle.getResourcePath("libraries.json"), "w");
-					const globalsFile: number = fs.openSync(this.handle.getResourcePath("globals.json"), "w");
-					// Then, write the JSON encoded version of the references
+					const coloringFile: number = fs.openSync(this.handle.getResourcePath(LIBRARY_COLORING_RESOURCE_NAME), "w");
+					const librariesFile: number = fs.openSync(this.handle.getResourcePath(LIBRARY_RESOURCE_NAME), "w");
+					const globalsFile: number = fs.openSync(this.handle.getResourcePath(GLOBALS_RESOURCE_NAME), "w");
+					// Then, encode the libraryItems into a format that can be read in the libraryColoring file
+					const regexNames: string = `\\b(${libraryNames.join("|")})\\b`;
+					const coloringContent: string = JSON.stringify({
+						"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+						"scopeName": "source.libraries.powerlang",
+						"patterns": [
+							{
+								"include": "#libraries"
+							}
+						],
+						"repository": {
+							"libraries": {
+								"patterns": [
+									{
+										"name": "support.class.powerlang",
+										"match": regexNames
+									}
+								]
+							}
+						}
+					});
+					console.log(coloringContent);
+					// Write the JSON encoded version of the references to their respective files
 					fs.writeFileSync(librariesFile, JSON.stringify(libraryReferences), FILE_ENCODING);
 					fs.writeFileSync(globalsFile, JSON.stringify(globalReferences), FILE_ENCODING);
+					fs.writeFileSync(coloringFile, coloringContent, FILE_ENCODING);
 					// Finally, close the files
 					fs.closeSync(librariesFile);
+					fs.closeSync(coloringFile);
 					fs.closeSync(globalsFile);
 					// End with a benchmark and resolve as successful
 					const benchmarkEnd: number = Date.now();
-					this.handle.showInformationMessage(`Done regenerating globals! Took ${benchmarkEnd - benchmarkStart}ms`);
+					this.handle.showInformationMessage(
+						`Regenerated in ${benchmarkEnd - benchmarkStart}ms. Reload the editor to update the syntax highlighting.`,
+						TAG_RESTART
+					).then((tag: string | undefined): void =>
+					{
+						if (tag === TAG_RESTART)
+							vscode.commands.executeCommand("workbench.action.reloadWindow");
+					});
 
 					resolve({
 						libraries: libraryReferences,
@@ -332,6 +367,10 @@ export class PowerlangScraper extends PowerlangProvider
 			{
 				console.log("Globals scraped and written to file", result);
 				this.handle.globalsRegeneratedEmitter.fire(result);
+			}
+			else
+			{
+				console.log("Cancelled scraping");
 			}
 			this._isRegenerating = false;
 		});
