@@ -1,9 +1,11 @@
 "use strict";
+// #region Imports
+import * as vscode from "vscode";
+// #endregion
 // #region Exports
 export const INTERNAL_NAME = "vscode-powerlang";
 // #endregion
-// #region Imports
-import * as vscode from "vscode";
+// #region Modules
 import { PowerlangHandle } from "./powerlangHandle";
 // #endregion
 // #region Functions
