@@ -7,21 +7,13 @@ import * as fs from "fs";
 import { PowerlangAPI, PowerlangGlobal } from "./powerlangAPI";
 import { PowerlangProvider } from "./powerlangProvider";
 
-import { PowerlangHandle, FILE_ENCODING, GLOBALS_RESOURCE_NAME, LIBRARY_RESOURCE_NAME } from "./powerlangHandle";
-import { LOGIC_GATES, VALID_FLAGS } from "./parser/powerlangCore";
+import { LOGIC_GATES, VALID_FLAGS, REGEX_FLAG, REGEX_BREAK, REGEX_VARIABLE, REGEX_ASSIGNMENT, REGEX_CONDITIONALS } from "./parser/powerlangCore";
+import { PowerlangHandle } from "./powerlangHandle";
 // #endregion
 // #region Types
 type PowerlangLibrary = { [ library: string ]: vscode.CompletionItem[]; };
 // #endregion
 // #region Constants
-const REGEX_ASSIGNMENT: RegExp = /([A-Z_]+[A-Z0-9_-]*)\s*=/i;
-const REGEX_CONDITIONALS: RegExp = /^(IF|WHILE)/i;
-
-const REGEX_VARIABLE: RegExp = /[A-Z_]+[A-Z0-9_-]*/i;
-
-const REGEX_FLAG: RegExp = /@FLAG\s+/i;
-const REGEX_BREAK: RegExp = /[\n;]/g;
-
 const FLAG_ANNOTATION_ITEMS: vscode.CompletionItem[] = [ new vscode.CompletionItem("flag", vscode.CompletionItemKind.Enum) ];
 const TABLELOOP_ITEMS: vscode.CompletionItem[] = [ new vscode.CompletionItem("in", vscode.CompletionItemKind.Keyword) ];
 

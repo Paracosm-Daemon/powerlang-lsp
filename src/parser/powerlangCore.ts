@@ -44,6 +44,15 @@ enum TokenTypes
 }
 // #endregion
 // #region Exports
+export const REGEX_ASSIGNMENT: RegExp = /([A-Z_]+[A-Z0-9_-]*)\s*=/i;
+export const REGEX_CONDITIONALS: RegExp = /^(IF|WHILE)/i;
+
+export const REGEX_VARIABLE: RegExp = /[A-Z_]+[A-Z0-9_-]*/i;
+export const REGEX_FLAG: RegExp = /@FLAG\s+/i;
+
+export const REGEX_PATH_BREAK: RegExp = /[^A-Z0-9_.]/gi;
+export const REGEX_BREAK: RegExp = /[\n;]/g;
+
 export const VARIABLE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_-.1234567890";
 export const DIRECTIVE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ@-";
 
