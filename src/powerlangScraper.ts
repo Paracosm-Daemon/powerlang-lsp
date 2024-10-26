@@ -8,7 +8,7 @@ import * as fs from "fs";
 import { PowerlangAPI, PowerlangGlobal, PowerlangParameter } from "./powerlangAPI";
 import { PowerlangProvider } from "./powerlangProvider";
 
-import { PowerlangHandle, RegeneratedEventParams, FILE_ENCODING, GLOBALS_RESOURCE_NAME, LIBRARY_RESOURCE_NAME, LIBRARY_COLORING_RESOURCE_NAME } from "./powerlangHandle";
+import { PowerlangHandle, FILE_ENCODING, GLOBALS_RESOURCE_NAME, LIBRARY_RESOURCE_NAME, LIBRARY_COLORING_RESOURCE_NAME } from "./powerlangHandle";
 // #endregion
 // #region Types
 type ScrapeLink = {
@@ -191,11 +191,11 @@ export class PowerlangScraper extends PowerlangProvider
 			location: vscode.ProgressLocation.Notification,
 			title: "Fetching API",
 			cancellable: true
-		}, async (progress: vscode.Progress<{ message?: string, increment?: number; }>, token: vscode.CancellationToken): Promise<RegeneratedEventParams | undefined> =>
+		}, async (progress: vscode.Progress<{ message?: string, increment?: number; }>, token: vscode.CancellationToken): Promise<boolean> =>
 		{
-			return new Promise(async (resolve: (value: RegeneratedEventParams | undefined) => void, reject: (reason?: any) => void): Promise<void> =>
+			return new Promise(async (resolve: (value: boolean) => void, reject: (reason?: any) => void): Promise<void> =>
 			{
-				token.onCancellationRequested((): void => resolve(undefined));
+				token.onCancellationRequested((): void => resolve(false));
 				try
 				{
 					const benchmarkStart: number = Date.now();
@@ -342,36 +342,27 @@ export class PowerlangScraper extends PowerlangProvider
 							vscode.commands.executeCommand("workbench.action.reloadWindow");
 					});
 
-					resolve({
-						libraries: libraryReferences,
-						globals: globalReferences
-					});
+					this.handle.loadGlobals(libraryReferences, globalReferences);
+					resolve(true);
 					// #endregion
 				}
 				catch (exception: any)
 				{
 					reject(exception);
 				}
-			}).catch((reason?: any): undefined =>
+			}).catch((reason?: any): boolean =>
 			{
 				const prettyReason: string = reason instanceof Error
 					? reason.message
 					: reason.toString();
 
 				this.handle.showErrorMessage(`Failed to regenerate globals: ${prettyReason}`);
-				return undefined;
+				return false;
 			});
-		}).then((result: RegeneratedEventParams | undefined): void =>
+		}).then((success: boolean): void =>
 		{
-			if (result !== undefined)
-			{
-				console.log("Globals scraped and written to file", result);
-				this.handle.globalsRegeneratedEmitter.fire(result);
-			}
-			else
-			{
-				console.log("Cancelled scraping");
-			}
+			if (success === true)
+				console.log("Globals scraped and written to files");
 			this._isRegenerating = false;
 		});
 	}

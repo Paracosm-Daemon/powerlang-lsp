@@ -7,7 +7,7 @@ import * as fs from "fs";
 import { PowerlangAPI, PowerlangGlobal } from "./powerlangAPI";
 import { PowerlangProvider } from "./powerlangProvider";
 
-import { PowerlangHandle, RegeneratedEventParams, FILE_ENCODING, GLOBALS_RESOURCE_NAME, LIBRARY_RESOURCE_NAME, LIBRARY_COLORING_RESOURCE_NAME } from "./powerlangHandle";
+import { PowerlangHandle, FILE_ENCODING, GLOBALS_RESOURCE_NAME, LIBRARY_RESOURCE_NAME } from "./powerlangHandle";
 import { LOGIC_GATES, VALID_FLAGS } from "./parser/powerlangCore";
 // #endregion
 // #region Types
@@ -83,10 +83,9 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 			? new RegExp(triggerCharacters.join("") + "$")
 			: undefined;
 		provider.handle.context.subscriptions.push(vscode.languages.registerCompletionItemProvider("powerlang", {
-			resolveCompletionItem(item): vscode.ProviderResult<vscode.CompletionItem> { return item; },
 			provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, cancel: vscode.CancellationToken, context: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionList>
 			{
-				const cursorRange = document.lineAt(position).text.substring(0, position.character);
+				const cursorRange: string = document.lineAt(position).text.substring(0, position.character);
 				// Find the latest declaration break so that we can autocomplete assignments/conditionals
 				REGEX_BREAK.lastIndex = 0;
 
@@ -153,10 +152,10 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 		return new vscode.CompletionList();
 	}
 
-	private _loadGlobals(registered: RegeneratedEventParams): void
+	private _loadGlobals(): void
 	{
-		const powerlangLibraries: PowerlangGlobal[] = registered.libraries;
-		const powerlangGlobals: PowerlangAPI[] = registered.globals;
+		const powerlangLibraries: PowerlangGlobal[] = this.handle.globalLibraries;
+		const powerlangGlobals: PowerlangAPI[] = this.handle.globalFunctions;
 		// Add all global libraries from the globals.json file into autocomplete
 		this._globalItems = [
 			...GLOBAL_ITEMS,
@@ -186,20 +185,6 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 	private _registerEvents(): void
 	{
 		this.handle.globalsRegenerated(this._loadGlobals, this);
-
-		const librariesFile: number = fs.openSync(this.handle.getResourcePath(LIBRARY_RESOURCE_NAME), "r");
-		const globalsFile: number = fs.openSync(this.handle.getResourcePath(GLOBALS_RESOURCE_NAME), "r");
-
-		const librariesJSON: string = fs.readFileSync(librariesFile, { encoding: FILE_ENCODING });
-		const globalsJSON: string = fs.readFileSync(globalsFile, { encoding: FILE_ENCODING });
-
-		fs.closeSync(librariesFile);
-		fs.closeSync(globalsFile);
-
-		this._loadGlobals({
-			libraries: JSON.parse(librariesJSON),
-			globals: JSON.parse(globalsJSON)
-		});
 	}
 	// #endregion
 	// #endregion
