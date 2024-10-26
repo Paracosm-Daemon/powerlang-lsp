@@ -1,7 +1,8 @@
 "use strict";
 // #region Imports
 import * as vscode from "vscode";
-
+// #endregion
+// #region Modules
 import { PowerlangProvider } from "./powerlangProvider";
 import { PowerlangHandle } from "./powerlangHandle";
 

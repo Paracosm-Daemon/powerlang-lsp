@@ -1,5 +1,5 @@
 "use strict";
-// #region Imports
+// #region Modules
 import { PowerlangHandle } from "./powerlangHandle";
 // #endregion
 // #region Classes
