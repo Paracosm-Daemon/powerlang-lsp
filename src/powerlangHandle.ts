@@ -10,6 +10,7 @@ export const FILE_ENCODING: BufferEncoding & fs.WriteFileOptions = "utf-8";
 export const LIBRARY_COLORING_RESOURCE_NAME: string = "libraryColoring.json";
 export const LIBRARY_RESOURCE_NAME: string = "libraries.json";
 export const GLOBALS_RESOURCE_NAME: string = "globals.json";
+export const FLAGS_RESOURCE_NAME: string = "flags.json";
 // #endregion
 // #region Modules
 import { PowerlangCompletionProvider } from "./completionProvider";
@@ -29,6 +30,8 @@ export class PowerlangHandle
 {
 	// #region Variables
 	// #region Public
+	public flagAnnotations: { [flag: string]: string };
+
 	public globalLibraries: PowerlangGlobal[];
 	public globalFunctions: PowerlangAPI[];
 
@@ -50,6 +53,8 @@ export class PowerlangHandle
 	public constructor(public readonly context: vscode.ExtensionContext)
 	{
 		// Just have to assign these by default because TS gets mad
+		this.flagAnnotations = {};
+
 		this.globalFunctions = [];
 		this.globalLibraries = [];
 
@@ -97,13 +102,16 @@ export class PowerlangHandle
 	{
 		const librariesFile: number = fs.openSync(this.getResourcePath(LIBRARY_RESOURCE_NAME), "r");
 		const globalsFile: number = fs.openSync(this.getResourcePath(GLOBALS_RESOURCE_NAME), "r");
+		const flagsFile: number = fs.openSync(this.getResourcePath(FLAGS_RESOURCE_NAME), "r");
 
 		const librariesJSON: string = fs.readFileSync(librariesFile, { encoding: FILE_ENCODING });
 		const globalsJSON: string = fs.readFileSync(globalsFile, { encoding: FILE_ENCODING });
+		const flagsJSON: string = fs.readFileSync(flagsFile, { encoding: FILE_ENCODING });
 
 		fs.closeSync(librariesFile);
 		fs.closeSync(globalsFile);
 
+		this.flagAnnotations = JSON.parse(flagsJSON); // TODO: Automatically scrape flags
 		this.loadGlobals(JSON.parse(librariesJSON), JSON.parse(globalsJSON));
 	}
 

@@ -43,6 +43,9 @@ enum TokenTypes
 	Comment
 }
 // #endregion
+// #region Imports
+import * as vscode from "vscode";
+// #endregion
 // #region Exports
 export const REGEX_ASSIGNMENT: RegExp = /([A-Z_]+[A-Z0-9_-]*)\s*=/i;
 export const REGEX_CONDITIONALS: RegExp = /^(IF|WHILE)/i;
@@ -50,7 +53,7 @@ export const REGEX_CONDITIONALS: RegExp = /^(IF|WHILE)/i;
 export const REGEX_VARIABLE: RegExp = /[A-Z_]+[A-Z0-9_-]*/i;
 export const REGEX_FLAG: RegExp = /@FLAG\s+/i;
 
-export const REGEX_PATH_BREAK: RegExp = /[^A-Z0-9_.]/gi;
+export const REGEX_PATH_BREAK: RegExp = /[^A-Z0-9_.]+/gi;
 export const REGEX_BREAK: RegExp = /[\n;]/g;
 
 export const VARIABLE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_-.1234567890";
@@ -62,26 +65,17 @@ export const INDENTATION_CHARACTERS: string = "\n\t ";
 export const DECLARATION_BREAKS: string = "\n;";
 export const DIRECTIVE_BREAKS: string = DECLARATION_BREAKS + " ";
 
+export const FLAG_ANNOTATION: string = "@FLAG";
 export const LOGIC_GATES: string[] = [
 	"and",
 	"not",
 	"or"
 ];
-export const VALID_FLAGS: string[] = [
-	"BypassVariableAntiFilter",
-	"DoNotIncludeWatermark",
-	"MultilineCallsTest",
-	"AllowNoSemicolons",
-	"UseIPathForEvents",
-	"UseVSV3"
-];
 // #endregion
-// #region Imports
-import * as vscode from "vscode";
-
+// #region Modules
 import { declare, handleDirective } from "./powerlangDirectives";
 import { PowerlangPointer } from "./powerlangPointer";
-
+import { PowerlangHandle } from "../powerlangHandle";
 import { INTERNAL_NAME } from "../extension";
 // #endregion
 // #region Constants
@@ -105,7 +99,7 @@ export class PowerlangCore
 	// #endregion
 	// #region Functions
 	// #region Public
-	public constructor(source: string)
+	public constructor(public readonly handle: PowerlangHandle, source: string)
 	{
 		// Assign private variables
 		// Trim whitespace and remove carriage returns since they doesn't play nice
@@ -116,8 +110,8 @@ export class PowerlangCore
 
 		this.sourceLength = this.source.length;
 		this.flags = {
-			[ VALID_FLAGS[ 2 ] ]: true, // MultilineCallsTest true by default
-			[ VALID_FLAGS[ 3 ] ]: true // AllowNoSemicolons true by default
+			MultilineCallsTest: true, // MultilineCallsTest true by default
+			AllowNoSemicolons: true // AllowNoSemicolons true by default
 		};
 		// Check if the script is empty, or cannot be tokenized
 		if (this.sourceLength === 0) return;
@@ -129,7 +123,7 @@ export class PowerlangCore
 	private _parse(): void
 	{
 		const maxTokenizationLength: number | undefined = vscode.workspace.getConfiguration("editor").get<number>("maxTokenizationLineLength");
-		const lineCount = this.source.split("\n").length;
+		const lineCount: number = this.source.split("\n").length;
 
 		if (maxTokenizationLength === undefined || lineCount > maxTokenizationLength) return;
 		const pointer: PowerlangPointer = this.pointer;

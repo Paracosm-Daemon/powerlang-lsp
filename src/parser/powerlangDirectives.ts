@@ -1,8 +1,8 @@
 "use strict";
 // #region Imports
 import { PowerlangTokenizer, PowerlangToken } from "./powerlangTokenizer";
-import { PowerlangCore, VALID_FLAGS } from "./powerlangCore";
 import { PowerlangPointer } from "./powerlangPointer";
+import { PowerlangCore } from "./powerlangCore";
 // #endregion
 // #region Constants
 const REGEX_FLAG: RegExp = /(?! )[^;\n]*/;
@@ -27,7 +27,7 @@ export function declare(core: PowerlangCore, eventOverride: boolean = false): st
 	*/
 	const pointer: PowerlangPointer = core.pointer;
 	// For compatibility
-	let breakCharacters: string = (VALID_FLAGS[ 3 ] in core.flags) ? ALLOWED_BREAK_CHARACTERS_FULL : ALLOWED_BREAK_CHARACTERS;
+	let breakCharacters: string = ("AllowNoSemicolons" in core.flags) ? ALLOWED_BREAK_CHARACTERS_FULL : ALLOWED_BREAK_CHARACTERS;
 	if (eventOverride) breakCharacters += "()";
 
 	const tokenizer: PowerlangTokenizer = new PowerlangTokenizer(core.source, pointer, breakCharacters);
@@ -558,7 +558,7 @@ export function handleDirective(core: PowerlangCore, directive: string, directiv
 				const flagName: string = flagFull[ 0 ];
 
 				console.log(flagName, flagOffset);
-				if (!VALID_FLAGS.includes(flagName))
+				if (!(flagName in core.handle.flagAnnotations))
 				{
 					console.warn(`Flag ${flagName} is an unknown flag`);
 					break;
@@ -566,7 +566,7 @@ export function handleDirective(core: PowerlangCore, directive: string, directiv
 
 				switch (flagName)
 				{
-					case VALID_FLAGS[ 3 ]:
+					case "AllowNoSemicolons":
 						{
 							console.warn("The AllowNoSemicolons flag is declared by default starting from Powerlang 0.7. You do not need to declare it anymore.");
 							break;

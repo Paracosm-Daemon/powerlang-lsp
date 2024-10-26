@@ -53,7 +53,7 @@ export class PowerlangParser extends PowerlangProvider
 	// #region Private
 	private _parseFile(uri: vscode.Uri, body: string): PowerlangCore
 	{
-		return this._parsedFiles[ uri.fsPath ] = new PowerlangCore(body);
+		return this._parsedFiles[ uri.fsPath ] = new PowerlangCore(this.handle, body);
 	}
 	private _parseEditedDocument(document: vscode.TextDocument): PowerlangCore | undefined
 	{

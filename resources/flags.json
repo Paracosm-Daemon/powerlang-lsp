@@ -1,0 +1,8 @@
+{
+	"AllowNoSemicolons": "**Deprecated, as it is already enabled by default since Alpha 0.7.** This would remove the requirement to add `;` characters at the end of each line, which used to be mandatory prior to Alpha 0.7.",
+	"DoNotIncludeWatermark": "Do not include the \"Compiled with Powerlang on ...\" watermark block",
+	"MultilineCallsTest": "Enables stretching calls to multiple lines without the `Unclosed bracket` error",
+	"UseIPathForEvents": "**Deprecated, as it is already enabled by default.**",
+	"UseVSV3": "**Incomplete.** This enables the experimental Visual Scripting V3 compression algorithm. This is a placeholder, and although your program will compile, the output will not be valid. `UseVSV3` will be finished at a later date and made default if all goes well.",
+	"BypassVariableAntiFilter": ""
+}
