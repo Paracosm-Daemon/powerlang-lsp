@@ -1,35 +1,21 @@
 "use strict";
 // #region Imports
 import * as vscode from "vscode";
-import * as path from "path";
 import * as fs from "fs";
-
+// #endregion
+// #region Modules
+import { PowerlangAPI, PowerlangGlobal } from "./powerlangAPI";
 import { PowerlangProvider } from "./powerlangProvider";
-import { PowerlangHandle } from "./powerlangHandle";
 
+import { PowerlangHandle, RegeneratedEventParams, FILE_ENCODING } from "./powerlangHandle";
 import { LOGIC_GATES, VALID_FLAGS } from "./parser/powerlangCore";
 // #endregion
 // #region Types
-type PowerlangParameter = {
-	name: string,
-	type: string;
-};
-type PowerlangAPI = {
-	parameters: PowerlangParameter[];
-	return: string[];
-
-	description?: string;
-	name: string;
-};
-type PowerlangGlobal = {
-	api: PowerlangAPI[];
-	name: string,
-};
 type PowerlangLibrary = { [ library: string ]: vscode.CompletionItem[]; };
 // #endregion
 // #region Constants
-import POWERLANG_LIBRARIES from "../resources/libraries.json";
-import POWERLANG_GLOBALS from "../resources/globals.json";
+// import POWERLANG_LIBRARIES from "../resources/libraries.json";
+// import POWERLANG_GLOBALS from "../resources/globals.json";
 
 const REGEX_ASSIGNMENT: RegExp = /([A-Z_]+[A-Z0-9_-]*)\s*=/i;
 const REGEX_CONDITIONALS: RegExp = /^(IF|WHILE)/i;
@@ -54,52 +40,24 @@ const BOOLEAN_ITEMS: vscode.CompletionItem[] = [
 	new vscode.CompletionItem("true", vscode.CompletionItemKind.Keyword),
 	new vscode.CompletionItem("nil", vscode.CompletionItemKind.Keyword)
 ];
-// Add all global libraries from the globals.json file into autocomplete
-const GLOBAL_ITEMS: vscode.CompletionItem[] = [
-	new vscode.CompletionItem("tableloop", vscode.CompletionItemKind.Keyword),
-	new vscode.CompletionItem("for", vscode.CompletionItemKind.Keyword),
-
-	new vscode.CompletionItem("function", vscode.CompletionItemKind.Keyword),
-	new vscode.CompletionItem("thread", vscode.CompletionItemKind.Keyword),
-	new vscode.CompletionItem("event", vscode.CompletionItemKind.Keyword),
-
-	new vscode.CompletionItem("while", vscode.CompletionItemKind.Keyword),
-	new vscode.CompletionItem("if", vscode.CompletionItemKind.Keyword),
-
-	new vscode.CompletionItem("workspace", vscode.CompletionItemKind.Module),
-	new vscode.CompletionItem("script", vscode.CompletionItemKind.Module),
-	new vscode.CompletionItem("game", vscode.CompletionItemKind.Module),
-
-	...POWERLANG_GLOBALS.map(
-		(globalFunction: PowerlangAPI): vscode.CompletionItem =>
-			new vscode.CompletionItem(globalFunction.name, vscode.CompletionItemKind.Function)
-	),
-	...POWERLANG_LIBRARIES.map(
-		(globalLibrary: PowerlangGlobal): vscode.CompletionItem =>
-			new vscode.CompletionItem(globalLibrary.name, vscode.CompletionItemKind.Module)
-	)
-];
-const LIBRARY_ITEMS: PowerlangLibrary = POWERLANG_LIBRARIES.reduce((result: PowerlangLibrary, globalLibrary: PowerlangGlobal): PowerlangLibrary => ({
-	[ globalLibrary.name ]: globalLibrary.api.map((globalAPI: PowerlangAPI): vscode.CompletionItem =>
-		new vscode.CompletionItem(globalAPI.name, vscode.CompletionItemKind.Function)
-	),
-	...result
-}), {});
-//{
-// ...POWERLANG_LIBRARIES.map((globalLibrary: PowerlangGlobal): vscode.CompletionItem[] => {
-// 	{ [globalLibrary.name]: globalLibrary.api.map((libraryFunction: PowerlangAPI): vscode.CompletionItem =>
-// 		new vscode.CompletionItem(libraryFunction.name, vscode.CompletionItemKind.Function)
-// 	) }
-// })
-//}
 // #endregion
 // #region Classes
 export class PowerlangCompletionProvider extends PowerlangProvider
 {
+	// #region Variables
+	private _globalItems: vscode.CompletionItem[];
+	private _libraryItems: PowerlangLibrary;
+	// #endregion
+	// #region Functions
 	// #region Overrides
 	public constructor(handle: PowerlangHandle)
 	{
 		super(handle);
+
+		this._libraryItems = {};
+		this._globalItems = [];
+
+		this._registerEvents();
 		this._registerProviders();
 	}
 	// #endregion
@@ -143,7 +101,7 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 
 		if (provider._includeConditionals(term)) completionList.items.push(...BOOLEAN_ITEMS, ...OPERATION_ITEMS);
 		else if (provider._includeBooleans(term)) completionList.items.push(...BOOLEAN_ITEMS);
-		else completionList.items.push(...GLOBAL_ITEMS);
+		else completionList.items.push(...provider._globalItems);
 
 		return completionList;
 	}
@@ -161,7 +119,7 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 			if (variablesBefore !== null)
 			{
 				const globalVariable: string = variablesBefore[ 0 ];
-				if (globalVariable in LIBRARY_ITEMS) completionList.items.push(...LIBRARY_ITEMS[globalVariable]);
+				if (globalVariable in provider._libraryItems) completionList.items.push(...provider._libraryItems[ globalVariable ]);
 			}
 		}
 		return completionList;
@@ -178,12 +136,68 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 		return completionList;
 	}
 
+	private _loadGlobals(registered: RegeneratedEventParams): void
+	{
+		const powerlangLibraries: PowerlangGlobal[] = registered.libraries;
+		const powerlangGlobals: PowerlangAPI[] = registered.globals;
+		// Add all global libraries from the globals.json file into autocomplete
+		this._globalItems = [
+			new vscode.CompletionItem("tableloop", vscode.CompletionItemKind.Keyword),
+			new vscode.CompletionItem("for", vscode.CompletionItemKind.Keyword),
+
+			new vscode.CompletionItem("function", vscode.CompletionItemKind.Keyword),
+			new vscode.CompletionItem("thread", vscode.CompletionItemKind.Keyword),
+			new vscode.CompletionItem("event", vscode.CompletionItemKind.Keyword),
+
+			new vscode.CompletionItem("while", vscode.CompletionItemKind.Keyword),
+			new vscode.CompletionItem("if", vscode.CompletionItemKind.Keyword),
+
+			new vscode.CompletionItem("workspace", vscode.CompletionItemKind.Module),
+			new vscode.CompletionItem("script", vscode.CompletionItemKind.Module),
+			new vscode.CompletionItem("game", vscode.CompletionItemKind.Module),
+
+			...powerlangGlobals.map(
+				(globalFunction: PowerlangAPI): vscode.CompletionItem =>
+					new vscode.CompletionItem(globalFunction.name, vscode.CompletionItemKind.Function)
+			),
+			...powerlangLibraries.map(
+				(globalLibrary: PowerlangGlobal): vscode.CompletionItem =>
+					new vscode.CompletionItem(globalLibrary.name, vscode.CompletionItemKind.Module)
+			)
+		];
+		this._libraryItems = powerlangLibraries.reduce((result: PowerlangLibrary, globalLibrary: PowerlangGlobal): PowerlangLibrary => ({
+			[ globalLibrary.name ]: globalLibrary.api.map((globalAPI: PowerlangAPI): vscode.CompletionItem =>
+				new vscode.CompletionItem(globalAPI.name, vscode.CompletionItemKind.Function)
+			),
+			...result
+		}), {});
+	}
+
 	private _registerProviders(): void
 	{
 		PowerlangCompletionProvider._registerProvider(this, this._provideFlagCompletion, "@", " ");
 		PowerlangCompletionProvider._registerProvider(this, this._provideLibraryCompletion, ".");
 		PowerlangCompletionProvider._registerProvider(this, this._provideScopedCompletion);
 	}
+	private _registerEvents(): void
+	{
+		this.handle.globalsRegenerated(this._loadGlobals, this);
+
+		const librariesFile: number = fs.openSync(this.handle.getResourcePath("libraries.json"), "r");
+		const globalsFile: number = fs.openSync(this.handle.getResourcePath("globals.json"), "r");
+
+		const librariesJSON: string = fs.readFileSync(librariesFile, { encoding: FILE_ENCODING });
+		const globalsJSON: string = fs.readFileSync(globalsFile, { encoding: FILE_ENCODING });
+
+		fs.closeSync(librariesFile);
+		fs.closeSync(globalsFile);
+
+		this._loadGlobals({
+			libraries: JSON.parse(librariesJSON),
+			globals: JSON.parse(globalsJSON)
+		});
+	}
+	// #endregion
 	// #endregion
 }
 // #endregion
