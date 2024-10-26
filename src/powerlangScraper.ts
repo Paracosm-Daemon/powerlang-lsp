@@ -11,7 +11,7 @@ import { PowerlangProvider } from "./powerlangProvider";
 import { PowerlangHandle, RegeneratedEventParams, FILE_ENCODING } from "./powerlangHandle";
 // #endregion
 // #region Types
-type scrapeLink = {
+type ScrapeLink = {
 	reference: string;
 	library: string;
 };
@@ -64,6 +64,119 @@ export class PowerlangScraper extends PowerlangProvider
 	}
 	// #endregion
 	// #region Private
+	private async _scrapeFunctions(link: ScrapeLink): Promise<PowerlangAPI[]>
+	{
+		const hrefResponse: Response = await fetch(link.reference, API_REQUEST_OPTIONS);
+		const libraryName: string = link.library;
+
+		if (!hrefResponse.ok) throw new Error(`Error ${hrefResponse.status} (${hrefResponse.statusText})`);
+
+		const referenceHTML: string = await hrefResponse.text();
+		const referenceDocument: html.HTMLElement = html.parse(referenceHTML);
+
+		const referenceBody: html.HTMLElement | null = referenceDocument.querySelector("body");
+		if (referenceBody === null)
+			throw new Error(`${libraryName} document malformed, missing body`);
+
+		const tableItems: string[] = [];
+		referenceBody.getElementsByTagName("DIV").forEach((divElement: html.HTMLElement, index): void =>
+		{
+			const divLabel: string = divElement.text;
+			if (BLACKLISTED_LABELS.includes(divLabel)) return;
+
+			const divChildren: html.HTMLElement[] = divElement.getElementsByTagName("P");
+			if (divChildren.length === 0
+				|| divElement.id !== ""
+				|| divElement.getAttribute("class") !== CLASS_TABLE) // Table class
+				return;
+			for (const divChild of divChildren)
+			{
+				if (divChild.getAttribute("class") !== CLASS_PARAGRAPH) // P class
+					return;
+			}
+			tableItems.push(divLabel);
+		});
+
+		const itemCount: number = tableItems.length;
+		if ((itemCount % 2) !== 0)
+			throw new Error(`${libraryName} has a malformed API table, uneven item count`);
+
+		const libraryAPI: PowerlangAPI[] = [];
+		for (let itemIndex: number = 0; itemIndex < itemCount; itemIndex += 2)
+		{
+			// Grab the function's description and definition
+			const functionDescription: string = tableItems[ 1 + itemIndex ];
+			const functionDefinition: string = tableItems[ itemIndex ];
+			// First, get the name of the function
+			const functionParametersStart: number = functionDefinition.indexOf("(");
+			if (functionParametersStart < 0)
+				throw new Error(`${libraryName} has an invalid function definition: ${functionDefinition}`);
+
+			const functionName: string = functionDefinition.substring(0, functionParametersStart);
+			// Then, check for its parameters
+			const functionAfterName: string = functionDefinition.slice(functionParametersStart);
+			const functionParameters: RegExpExecArray | null = REGEX_PARAMETERS.exec(functionAfterName);
+			// This will not throw an exception if there are no parameters!
+			// This is sort of like a double check for if the parenthesis close
+			if (functionParameters === null)
+				throw new Error(`${libraryName} has an invalid function: ${functionName}`);
+
+			const parametersExtracted: string = functionParameters[ 1 ];
+			const parametersList: PowerlangParameter[] = [];
+			// Extract the RegEx filtered params
+			if (parametersExtracted.length !== 0)
+			{
+				parametersExtracted.split(",").forEach((parameterArgument: string): void =>
+				{
+					const defaultAssignmentIndex: number = parameterArgument.indexOf("=");
+					const typeAnnotationIndex: number = parameterArgument.indexOf(":");
+
+					const isAnnotated: boolean = typeAnnotationIndex >= 0;
+
+					const parameterName: string = (isAnnotated ? parameterArgument.substring(0, typeAnnotationIndex) : parameterArgument).trimStart();
+					const parameterType: string = isAnnotated ? parameterArgument.slice(1 + typeAnnotationIndex).trimStart() : "any";
+
+					if (defaultAssignmentIndex < 0)
+					{
+						parametersList.push({
+							name: parameterName,
+							type: parameterType
+						});
+					}
+					else
+					{
+						// This should hopefully account for variables that don't have their types defined
+						// Check if the specified default is assigned after the type annotation
+						const isDefaultAfterAnnotation: boolean = isAnnotated && defaultAssignmentIndex > typeAnnotationIndex;
+						parametersList.push({
+							type: isDefaultAfterAnnotation ? parameterArgument.substring(1 + typeAnnotationIndex, defaultAssignmentIndex).trimEnd() : parameterType,
+							name: isDefaultAfterAnnotation ? parameterName : parameterArgument.substring(0, defaultAssignmentIndex).trimEnd(),
+
+							default: parameterArgument.slice(1 + defaultAssignmentIndex).trimStart()
+						});
+					}
+				});
+			}
+			// Then, look for the returned arguments
+			const returnMatched: RegExpExecArray | null = REGEX_RETURNING.exec(functionAfterName.slice(functionParameters[ 0 ].length));
+			const returnArguments: string | undefined = returnMatched?.[ 1 ];
+
+			const argumentsList: string[] = [];
+			// These are optional as functions that don't return are still valid
+			if (returnArguments !== undefined && returnArguments.length !== 0)
+				argumentsList.push(...returnArguments.split(",").map((returnArgument: string): string => returnArgument.trim()));
+			// Finally, construct this function in the API for this library
+			libraryAPI.push({
+				description: functionDescription,
+				name: functionName,
+
+				parameters: parametersList,
+				return: argumentsList
+			});
+		}
+		// After the entire API is constructed, push the library
+		return libraryAPI;
+	}
 	private _regenerateGlobals(...args: any[]): void
 	{
 		if (this._isRegenerating)
@@ -86,10 +199,8 @@ export class PowerlangScraper extends PowerlangProvider
 				{
 					const benchmarkStart: number = Date.now();
 					progress.report({ increment: 0 });
-
-					const libraryReferences: PowerlangGlobal[] = [];
-					const globalReferences: PowerlangAPI[] = [];
 					// #region Library
+					const libraryReferences: PowerlangGlobal[] = [];
 					// Fetch to the original endpoint first to grab all of the valid libraries
 					const apiResponse: Response = await fetch(API_ORIGIN + BASE_SCRAPE, API_REQUEST_OPTIONS);
 
@@ -118,7 +229,7 @@ export class PowerlangScraper extends PowerlangProvider
 							continue;
 						// Search for hrefs under the first list
 						const listBody: html.HTMLElement = listBodies[ 0 ];
-						const scrapingLinks: scrapeLink[] = [];
+						const scrapingLinks: ScrapeLink[] = [];
 
 						listBody.getElementsByTagName("A").forEach((link: html.HTMLElement): void =>
 						{
@@ -130,8 +241,8 @@ export class PowerlangScraper extends PowerlangProvider
 								|| href.endsWith("/services")) // Title, disregard
 								return;
 							scrapingLinks.push({
-								library: link.text,
-								reference: href
+								reference: API_ORIGIN + href,
+								library: link.text
 							});
 						});
 
@@ -144,7 +255,7 @@ export class PowerlangScraper extends PowerlangProvider
 							if (token.isCancellationRequested)
 								return;
 
-							const currentLink: scrapeLink = scrapingLinks[ scrapeIndex ];
+							const currentLink: ScrapeLink = scrapingLinks[ scrapeIndex ];
 							const libraryName: string = currentLink.library;
 
 							console.log("Scrape library", libraryName);
@@ -153,128 +264,10 @@ export class PowerlangScraper extends PowerlangProvider
 								increment: progressScrapeIncrement
 							});
 							// We then scrape another part of the site for all of its info!
-							const hrefResponse: Response = await fetch(API_ORIGIN + currentLink.reference, API_REQUEST_OPTIONS);
-							if (!hrefResponse.ok) throw new Error(`Error ${hrefResponse.status} (${hrefResponse.statusText})`);
-
-							const referenceHTML: string = await hrefResponse.text();
-							const referenceDocument: html.HTMLElement = html.parse(referenceHTML);
-
-							const referenceBody: html.HTMLElement | null = referenceDocument.querySelector("body");
-							if (referenceBody === null)
-							{
-								reject(`${libraryName} document malformed, missing elements`);
-								return;
-							}
-
-							const tableItems: string[] = [];
-							referenceBody.getElementsByTagName("DIV").forEach((divElement: html.HTMLElement, index): void =>
-							{
-								const divLabel: string = divElement.text;
-								if (BLACKLISTED_LABELS.includes(divLabel)) return;
-
-								const divChildren: html.HTMLElement[] = divElement.getElementsByTagName("P");
-								if (divChildren.length === 0
-									|| divElement.id !== ""
-									|| divElement.getAttribute("class") !== CLASS_TABLE) // Table class
-									return;
-								for (const divChild of divChildren)
-								{
-									if (divChild.getAttribute("class") !== CLASS_PARAGRAPH) // P class
-										return;
-								}
-								tableItems.push(divLabel);
-							});
-
-							const itemCount: number = tableItems.length;
-							if ((itemCount % 2) !== 0)
-							{
-								reject(`${libraryName} has a malformed API table, uneven item count`);
-								return;
-							}
-
-							const libraryAPI: PowerlangAPI[] = [];
-							for (let itemIndex: number = 0; itemIndex < itemCount; itemIndex += 2)
-							{
-								// Grab the function's description and definition
-								const functionDescription: string = tableItems[ 1 + itemIndex ];
-								const functionDefinition: string = tableItems[ itemIndex ];
-								// First, get the name of the function
-								const functionParametersStart: number = functionDefinition.indexOf("(");
-								if (functionParametersStart < 0)
-								{
-									reject(`${libraryName} has an invalid function definition: ${functionDefinition}`);
-									return;
-								}
-
-								const functionName: string = functionDefinition.substring(0, functionParametersStart);
-								// Then, check for its parameters
-								const functionAfterName: string = functionDefinition.slice(functionParametersStart);
-								const functionParameters: RegExpExecArray | null = REGEX_PARAMETERS.exec(functionAfterName);
-								// This will not throw an exception if there are no parameters!
-								// This is sort of like a double check for if the parenthesis close
-								if (functionParameters === null)
-								{
-									reject(`${libraryName} has an invalid function (${functionName})`);
-									return;
-								}
-
-								const parametersExtracted: string = functionParameters[ 1 ];
-								const parametersList: PowerlangParameter[] = [];
-								// Extract the RegEx filtered params
-								if (parametersExtracted.length !== 0)
-								{
-									parametersExtracted.split(",").forEach((parameterArgument: string): void =>
-									{
-										const defaultAssignmentIndex: number = parameterArgument.indexOf("=");
-										const typeAnnotationIndex: number = parameterArgument.indexOf(":");
-
-										const isAnnotated: boolean = typeAnnotationIndex >= 0;
-
-										const parameterName: string = (isAnnotated ? parameterArgument.substring(0, typeAnnotationIndex) : parameterArgument).trimStart();
-										const parameterType: string = isAnnotated ? parameterArgument.slice(1 + typeAnnotationIndex).trimStart() : "any";
-
-										if (defaultAssignmentIndex < 0)
-										{
-											parametersList.push({
-												name: parameterName,
-												type: parameterType
-											});
-										}
-										else
-										{
-											// This should hopefully account for variables that don't have their types defined
-											// Check if the specified default is assigned after the type annotation
-											const isDefaultAfterAnnotation: boolean = isAnnotated && defaultAssignmentIndex > typeAnnotationIndex;
-											parametersList.push({
-												type: isDefaultAfterAnnotation ? parameterArgument.substring(1 + typeAnnotationIndex, defaultAssignmentIndex).trimEnd() : parameterType,
-												name: isDefaultAfterAnnotation ? parameterName : parameterArgument.substring(0, defaultAssignmentIndex).trimEnd(),
-
-												default: parameterArgument.slice(1 + defaultAssignmentIndex).trimStart()
-											});
-										}
-									});
-								}
-								// Then, look for the returned arguments
-								const returnMatched: RegExpExecArray | null = REGEX_RETURNING.exec(functionAfterName.slice(functionParameters[ 0 ].length));
-								const returnArguments: string | undefined = returnMatched?.[ 1 ];
-
-								const argumentsList: string[] = [];
-								// These are optional as functions that don't return are still valid
-								if (returnArguments !== undefined && returnArguments.length !== 0)
-									argumentsList.push(...returnArguments.split(",").map((returnArgument: string): string => returnArgument.trim()));
-								// Finally, construct this function in the API for this library
-								libraryAPI.push({
-									description: functionDescription,
-									name: functionName,
-
-									parameters: parametersList,
-									return: argumentsList
-								});
-							}
 							// After the entire API is constructed, push the library
 							libraryReferences.push({
-								name: libraryName,
-								api: libraryAPI
+								api: await this._scrapeFunctions(currentLink),
+								name: libraryName
 							});
 						}
 						break;
@@ -288,124 +281,11 @@ export class PowerlangScraper extends PowerlangProvider
 						increment: PRE_GLOBALS_INCREMENT
 					});
 
-					const globalsResponse: Response = await fetch(API_ORIGIN + GLOBAL_SCRAPE, API_REQUEST_OPTIONS);
-					if (!globalsResponse.ok) throw new Error(`Error ${globalsResponse.status} (${globalsResponse.statusText})`);
-					// Pretty much copy and pasted, I might find a way to make this less copy-pastey later on
-					const globalsHTML: string = await globalsResponse.text();
-					const globalsDocument: html.HTMLElement = html.parse(globalsHTML);
-
-					const globalsBody: html.HTMLElement | null = globalsDocument.querySelector("body");
-					if (globalsBody === null)
-					{
-						reject("Global functions document malformed!");
-						return;
-					}
-
-					const globalItems: string[] = [];
-					globalsBody.getElementsByTagName("DIV").forEach((divElement: html.HTMLElement, index): void =>
-					{
-						const divLabel: string = divElement.text;
-						if (BLACKLISTED_LABELS.includes(divLabel)) return;
-
-						const divChildren: html.HTMLElement[] = divElement.getElementsByTagName("P");
-						if (divChildren.length === 0
-							|| divElement.id !== ""
-							|| divElement.getAttribute("class") !== CLASS_TABLE)
-							return;
-						for (const divChild of divChildren)
-						{
-							if (divChild.getAttribute("class") !== CLASS_PARAGRAPH)
-								return;
-						}
-						globalItems.push(divLabel);
+					const globalReferences: PowerlangAPI[] = await this._scrapeFunctions({
+						reference: API_ORIGIN + GLOBAL_SCRAPE,
+						library: "Globals"
 					});
-
-					const globalCount: number = globalItems.length;
-					if ((globalCount % 2) !== 0)
-					{
-						reject("Globals have a malformed API table, uneven item count");
-						return;
-					}
-
-					for (let itemIndex: number = 0; itemIndex < globalCount; itemIndex += 2)
-					{
-						// Grab the function's description and definition
-						const functionDescription: string = globalItems[ 1 + itemIndex ];
-						const functionDefinition: string = globalItems[ itemIndex ];
-						// First, get the name of the function
-						const functionParametersStart: number = functionDefinition.indexOf("(");
-						if (functionParametersStart < 0)
-						{
-							reject(`Globals have an invalid function definition: ${functionDefinition}`);
-							return;
-						}
-
-						const functionName: string = functionDefinition.substring(0, functionParametersStart);
-						// Then, check for its parameters
-						const functionAfterName: string = functionDefinition.slice(functionParametersStart);
-						const functionParameters: RegExpExecArray | null = REGEX_PARAMETERS.exec(functionAfterName);
-						// This will not throw an exception if there are no parameters!
-						// This is sort of like a double check for if the parenthesis close
-						if (functionParameters === null)
-						{
-							reject(`Globals have an invalid function (${functionName})`);
-							return;
-						}
-
-						const parametersExtracted: string = functionParameters[ 1 ];
-						const parametersList: PowerlangParameter[] = [];
-						// Extract the RegEx filtered params
-						if (parametersExtracted.length !== 0)
-						{
-							parametersExtracted.split(",").forEach((parameterArgument: string): void =>
-							{
-								const defaultAssignmentIndex: number = parameterArgument.indexOf("=");
-								const typeAnnotationIndex: number = parameterArgument.indexOf(":");
-
-								const isAnnotated: boolean = typeAnnotationIndex >= 0;
-
-								const parameterName: string = (isAnnotated ? parameterArgument.substring(0, typeAnnotationIndex) : parameterArgument).trimStart();
-								const parameterType: string = isAnnotated ? parameterArgument.slice(1 + typeAnnotationIndex).trimStart() : "any";
-
-								if (defaultAssignmentIndex < 0)
-								{
-									parametersList.push({
-										name: parameterName,
-										type: parameterType
-									});
-								}
-								else
-								{
-									// This should hopefully account for variables that don't have their types defined
-									// Check if the specified default is assigned after the type annotation
-									const isDefaultAfterAnnotation: boolean = isAnnotated && defaultAssignmentIndex > typeAnnotationIndex;
-									parametersList.push({
-										type: isDefaultAfterAnnotation ? parameterArgument.substring(1 + typeAnnotationIndex, defaultAssignmentIndex).trimEnd() : parameterType,
-										name: isDefaultAfterAnnotation ? parameterName : parameterArgument.substring(0, defaultAssignmentIndex).trimEnd(),
-
-										default: parameterArgument.slice(1 + defaultAssignmentIndex).trimStart()
-									});
-								}
-							});
-						}
-						// Then, look for the returned arguments
-						const returnMatched: RegExpExecArray | null = REGEX_RETURNING.exec(functionAfterName.slice(functionParameters[ 0 ].length));
-						const returnArguments: string | undefined = returnMatched?.[ 1 ];
-
-						const argumentsList: string[] = [];
-						// These are optional as functions that don't return are still valid
-						if (returnArguments !== undefined && returnArguments.length !== 0)
-							argumentsList.push(...returnArguments.split(",").map((returnArgument: string): string => returnArgument.trim()));
-						// Finally, construct this function in the API for this library
-						globalReferences.push({
-							description: functionDescription,
-							name: functionName,
-
-							parameters: parametersList,
-							return: argumentsList
-						});
-					}
-					console.log("Scrape globals", globalReferences);
+					console.log("Scraped globals", globalReferences);
 					// #endregion
 					if (token.isCancellationRequested)
 						return;
