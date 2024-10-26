@@ -63,12 +63,16 @@
 		},
 		"grammars": [
 			{
-				"language": "powerlang",
+				"path": "./syntaxes/powerlang.tmLanguage.json",
 				"scopeName": "source.powerlang",
-				"path": "./syntaxes/powerlang.tmLanguage.json"
+				"language": "powerlang"
 			},
 			{
-				"scopeName": "markdown.powerlang.codeblock",
+				"path": "./resources/libraryColoring.json",
+				"scopeName": "source.libraries.powerlang"
+			},
+			{
+				"scopeName": "text.codeblock.powerlang",
 				"path": "./syntaxes/codeblock.json",
 				"injectTo": [
 					"text.html.markdown"

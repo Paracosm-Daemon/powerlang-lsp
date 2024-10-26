@@ -1,6 +1,7 @@
 {
-	"scopeName": "markdown.powerlang.codeblock",
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
 	"injectionSelector": "L:text.html.markdown",
+	"scopeName": "text.codeblock.powerlang",
 	"patterns": [
 		{
 			"include": "#powerlang-code-block"

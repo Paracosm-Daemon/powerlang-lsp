@@ -1,0 +1,19 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"scopeName": "source.libraries.powerlang",
+	"patterns": [
+		{
+			"include": "#libraries"
+		}
+	],
+	"repository": {
+		"libraries": {
+			"patterns": [
+				{
+					"name": "support.class.powerlang",
+					"match": "\\b(math|string)\\b"
+				}
+			]
+		}
+	}
+}

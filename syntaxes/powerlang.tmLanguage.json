@@ -61,7 +61,7 @@
 				},
 				{
 					"name": "support.function.powerlang",
-					"match": "([a-zA-Z_-]+\\w+)\\s*\\("
+					"match": "(?i)([A-Z_-]\\w*)\\s*\\("
 				},
 				{
 					"name": "markup.bold.powerlang",
@@ -99,16 +99,7 @@
 		"globals": {
 			"patterns": [
 				{
-					"match": "\\b(Ray|Debris|Players|DataStore|Pathfinding|TweenService|PhysicsService)\\b",
-					"name": "support.class.powerlang"
-				},
-				{
-					"match": "\\b(UDim2|CFrame|Color3|Vector2|Vector3|Instance|BrickColor|NumberRange)\\b",
-					"name": "support.class.powerlang"
-				},
-				{
-					"match": "\\b(math|table|string|compiler|retrostudio)\\b",
-					"name": "support.class.powerlang"
+					"include": "source.libraries.powerlang"
 				},
 				{
 					"match": "\\b(game|script|workspace)\\b",
@@ -119,7 +110,7 @@
 		"entities": {
 			"patterns": [
 				{
-					"match": "[a-zA-Z_]+\\w*",
+					"match": "(?i)[A-Z_-]\\w*",
 					"name": "variable.name.powerlang"
 				}
 			]
