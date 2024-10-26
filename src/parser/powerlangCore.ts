@@ -5,18 +5,6 @@
 **/
 // TODO: I probably need to redo a lot of this stuff and research the tokenizer more because I have no idea what SharedContext and Context is
 // #region Enums
-enum TokenTypes
-{
-	Flag,
-	Keyword,
-	Number,
-	String,
-	Boolean,
-	Operator,
-	Variable,
-	Comment
-}
-
 export enum ErrorCodes
 {
 	UnexpectedCharacter,
@@ -42,6 +30,17 @@ export enum ErrorCodes
 	UnknownEvent,
 	DeprecatedFeature,
 	NestedThread,
+}
+enum TokenTypes
+{
+	Flag,
+	Keyword,
+	Number,
+	String,
+	Boolean,
+	Operator,
+	Variable,
+	Comment
 }
 // #endregion
 // #region Exports
