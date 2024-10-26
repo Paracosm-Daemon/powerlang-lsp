@@ -14,9 +14,6 @@ import { LOGIC_GATES, VALID_FLAGS } from "./parser/powerlangCore";
 type PowerlangLibrary = { [ library: string ]: vscode.CompletionItem[]; };
 // #endregion
 // #region Constants
-// import POWERLANG_LIBRARIES from "../resources/libraries.json";
-// import POWERLANG_GLOBALS from "../resources/globals.json";
-
 const REGEX_ASSIGNMENT: RegExp = /([A-Z_]+[A-Z0-9_-]*)\s*=/i;
 const REGEX_CONDITIONALS: RegExp = /^(IF|WHILE)/i;
 

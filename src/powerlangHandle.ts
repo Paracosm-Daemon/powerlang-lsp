@@ -19,8 +19,8 @@ import { INTERNAL_NAME } from "./extension";
 // #region Types
 export type RegeneratedEventParams = {
 	libraries: PowerlangGlobal[],
-	globals: PowerlangAPI[]
-}
+	globals: PowerlangAPI[];
+};
 // #endregion
 // #region Constants
 const VERSION_KEY: string = `${INTERNAL_NAME}-version`;
