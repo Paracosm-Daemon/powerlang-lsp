@@ -334,7 +334,7 @@ export class PowerlangScraper extends PowerlangProvider
 					// End with a benchmark and resolve as successful
 					const benchmarkEnd: number = Date.now();
 					this.handle.showInformationMessage(
-						`Regenerated in ${benchmarkEnd - benchmarkStart}ms. Reload the editor to update the syntax highlighting.`,
+						`Regenerated (took ${benchmarkEnd - benchmarkStart}ms). Reload the editor to update the syntax highlighting.`,
 						TAG_RESTART
 					).then((tag: string | undefined): void =>
 					{
