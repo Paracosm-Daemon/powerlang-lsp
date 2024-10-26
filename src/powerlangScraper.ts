@@ -147,6 +147,7 @@ export class PowerlangScraper extends PowerlangProvider
 							const currentLink: scrapeLink = scrapingLinks[ scrapeIndex ];
 							const libraryName: string = currentLink.library;
 
+							console.log("Scrape library", libraryName);
 							progress.report({
 								message: `Scraping ${libraryName}`,
 								increment: progressScrapeIncrement
@@ -326,7 +327,6 @@ export class PowerlangScraper extends PowerlangProvider
 						return;
 					}
 
-					const libraryAPI: PowerlangAPI[] = [];
 					for (let itemIndex: number = 0; itemIndex < globalCount; itemIndex += 2)
 					{
 						// Grab the function's description and definition
@@ -405,6 +405,7 @@ export class PowerlangScraper extends PowerlangProvider
 							return: argumentsList
 						});
 					}
+					console.log("Scrape globals", globalReferences);
 					// #endregion
 					if (token.isCancellationRequested)
 						return;
@@ -449,7 +450,7 @@ export class PowerlangScraper extends PowerlangProvider
 		{
 			if (result !== undefined)
 			{
-				console.warn("Globals scraped and written to file", result);
+				console.log("Globals scraped and written to file", result);
 				this.handle.globalsRegeneratedEmitter.fire(result);
 			}
 			this._isRegenerating = false;
