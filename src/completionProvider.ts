@@ -1,13 +1,12 @@
 "use strict";
 // #region Imports
 import * as vscode from "vscode";
-import * as fs from "fs";
 // #endregion
 // #region Modules
 import { PowerlangAPI, PowerlangGlobal } from "./powerlangAPI";
 import { PowerlangProvider } from "./powerlangProvider";
 
-import { LOGIC_GATES, VALID_FLAGS, REGEX_FLAG, REGEX_BREAK, REGEX_VARIABLE, REGEX_ASSIGNMENT, REGEX_CONDITIONALS } from "./parser/powerlangCore";
+import { LOGIC_GATES, REGEX_FLAG, REGEX_BREAK, REGEX_VARIABLE, REGEX_ASSIGNMENT, REGEX_CONDITIONALS } from "./parser/powerlangCore";
 import { PowerlangHandle } from "./powerlangHandle";
 // #endregion
 // #region Types
@@ -37,11 +36,6 @@ const OPERATION_ITEMS: vscode.CompletionItem[] = LOGIC_GATES.map(
 	(value: string): vscode.CompletionItem =>
 		new vscode.CompletionItem(value, vscode.CompletionItemKind.Keyword)
 );
-const FLAG_ITEMS: vscode.CompletionItem[] = VALID_FLAGS.map(
-	(value: string): vscode.CompletionItem =>
-		new vscode.CompletionItem(value, vscode.CompletionItemKind.EnumMember)
-);
-
 const BOOLEAN_ITEMS: vscode.CompletionItem[] = [
 	new vscode.CompletionItem("false", vscode.CompletionItemKind.Keyword),
 	new vscode.CompletionItem("true", vscode.CompletionItemKind.Keyword),
@@ -53,6 +47,8 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 {
 	// #region Variables
 	private _globalItems: vscode.CompletionItem[];
+	private _flagItems: vscode.CompletionItem[];
+
 	private _libraryItems: PowerlangLibrary;
 	// #endregion
 	// #region Functions
@@ -60,16 +56,26 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 	public constructor(handle: PowerlangHandle)
 	{
 		super(handle);
-
 		this._libraryItems = {};
+
 		this._globalItems = [];
+		this._flagItems = [];
 
 		this._registerEvents();
 		this._registerProviders();
 	}
 	// #endregion
 	// #region Static
-	private static _registerProvider(provider: PowerlangCompletionProvider, callback: (provider: PowerlangCompletionProvider, document: vscode.TextDocument, position: vscode.Position, cancel: vscode.CancellationToken, context: vscode.CompletionContext, term: string) => vscode.CompletionList, ...triggerCharacters: string[]): void
+	private static _registerProvider(
+		provider: PowerlangCompletionProvider,
+		callback: (provider: PowerlangCompletionProvider,
+			document: vscode.TextDocument,
+			position: vscode.Position,
+			cancel: vscode.CancellationToken,
+			context: vscode.CompletionContext,
+			term: string)
+			=> vscode.ProviderResult<vscode.CompletionList>,
+		...triggerCharacters: string[]): void
 	{
 		const triggerCharacterRegEx: RegExp | undefined = triggerCharacters.length > 0
 			? new RegExp(triggerCharacters.join("") + "$")
@@ -84,10 +90,12 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 				let breakMatch: RegExpExecArray | null;
 				let lastBreak: number = -1;
 
-				while ((breakMatch = REGEX_BREAK.exec(cursorRange)) !== null) lastBreak = breakMatch.index + breakMatch[ 0 ].length;
-				const beforeCursor: string = lastBreak < 0 ? cursorRange : cursorRange.slice(lastBreak);
+				while ((breakMatch = REGEX_BREAK.exec(cursorRange)) !== null && !cancel.isCancellationRequested) lastBreak = breakMatch.index + breakMatch[ 0 ].length;
+				if (cancel.isCancellationRequested) return undefined;
 
+				const beforeCursor: string = lastBreak < 0 ? cursorRange : cursorRange.slice(lastBreak);
 				if (triggerCharacterRegEx !== undefined && context.triggerCharacter === undefined && beforeCursor.match(triggerCharacterRegEx)?.index === 0) return;
+
 				return callback(provider, document, position, cancel, context, beforeCursor);
 			}
 		}, ...triggerCharacters));
@@ -103,22 +111,27 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 	// variable = nil | true | false
 	private _includeBooleans(beforeCursor: string): boolean { return beforeCursor.search(REGEX_ASSIGNMENT) >= 0; }
 	// For local scopes
-	private _provideScopedCompletion(provider: PowerlangCompletionProvider, document: vscode.TextDocument, position: vscode.Position, _cancel: vscode.CancellationToken, context: vscode.CompletionContext, term: string): vscode.CompletionList
+	private _provideScopedCompletion(provider: PowerlangCompletionProvider,
+		_document: vscode.TextDocument,
+		_position: vscode.Position,
+		_cancel: vscode.CancellationToken,
+		_context: vscode.CompletionContext,
+		term: string): vscode.ProviderResult<vscode.CompletionList>
 	{
-		const completionList = new vscode.CompletionList();
+		if (provider._includeTableloop(term)) return new vscode.CompletionList(TABLELOOP_ITEMS);
+		else if (provider._includeConditionals(term)) return new vscode.CompletionList(BOOLEAN_ITEMS.concat(OPERATION_ITEMS));
+		else if (provider._includeBooleans(term)) return new vscode.CompletionList(BOOLEAN_ITEMS);
 
-		if (provider._includeTableloop(term)) completionList.items.push(...TABLELOOP_ITEMS);
-		else if (provider._includeConditionals(term)) completionList.items.push(...BOOLEAN_ITEMS, ...OPERATION_ITEMS);
-		else if (provider._includeBooleans(term)) completionList.items.push(...BOOLEAN_ITEMS);
-		else completionList.items.push(...provider._globalItems);
-
-		return completionList;
+		return new vscode.CompletionList(provider._globalItems);
 	}
 	// For globals
-	private _provideLibraryCompletion(provider: PowerlangCompletionProvider, document: vscode.TextDocument, position: vscode.Position, _cancel: vscode.CancellationToken, context: vscode.CompletionContext, term: string): vscode.CompletionList
+	private _provideLibraryCompletion(provider: PowerlangCompletionProvider,
+		_document: vscode.TextDocument,
+		_position: vscode.Position,
+		_cancel: vscode.CancellationToken,
+		_context: vscode.CompletionContext,
+		term: string): vscode.ProviderResult<vscode.CompletionList>
 	{
-		const completionList = new vscode.CompletionList();
-
 		const lastPeriod: number = term.lastIndexOf(".");
 		const firstPeriod: number = term.indexOf(".");
 		// Only resolving the first period, no need to go further for now
@@ -128,20 +141,25 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 			if (variablesBefore !== null)
 			{
 				const globalVariable: string = variablesBefore[ 0 ];
-				if (globalVariable in provider._libraryItems) completionList.items.push(...provider._libraryItems[ globalVariable ]);
+				if (globalVariable in provider._libraryItems) return new vscode.CompletionList(provider._libraryItems[ globalVariable ]);
 			}
 		}
-		return completionList;
+		return undefined;
 	}
 	// For flags
-	private _provideFlagCompletion(provider: PowerlangCompletionProvider, _document: vscode.TextDocument, _position: vscode.Position, _cancel: vscode.CancellationToken, _context: vscode.CompletionContext, term: string): vscode.CompletionList
+	private _provideFlagCompletion(provider: PowerlangCompletionProvider,
+		_document: vscode.TextDocument,
+		_position: vscode.Position,
+		_cancel: vscode.CancellationToken,
+		_context: vscode.CompletionContext,
+		term: string): vscode.ProviderResult<vscode.CompletionList>
 	{
 		if (provider._includeFlagAnnotation(term))
 		{
-			if (provider._includeFlags(term)) return new vscode.CompletionList(FLAG_ITEMS);
+			if (provider._includeFlags(term)) return new vscode.CompletionList(this._flagItems);
 			return new vscode.CompletionList(FLAG_ANNOTATION_ITEMS);
 		}
-		return new vscode.CompletionList();
+		return undefined;
 	}
 
 	private _loadGlobals(): void
@@ -166,6 +184,9 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 			),
 			...result
 		}), {});
+		this._flagItems = Object.entries(this.handle.flagAnnotations).map((values: [ string, string ]): vscode.CompletionItem =>
+			new vscode.CompletionItem(values[ 0 ], vscode.CompletionItemKind.EnumMember)
+		);
 	}
 
 	private _registerProviders(): void
