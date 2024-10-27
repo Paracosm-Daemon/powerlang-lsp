@@ -71,16 +71,6 @@
 			{
 				"path": "./resources/libraryColoring.json",
 				"scopeName": "source.libraries.powerlang"
-			},
-			{
-				"scopeName": "text.codeblock.powerlang",
-				"path": "./syntaxes/codeblock.json",
-				"injectTo": [
-					"text.html.markdown"
-				],
-				"embeddedLanguages": {
-					"meta.embedded.block.powerlang": "powerlang"
-				}
 			}
 		],
 		"snippets": [
