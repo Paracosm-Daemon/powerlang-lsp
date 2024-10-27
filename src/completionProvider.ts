@@ -91,7 +91,7 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 				let lastBreak: number = -1;
 
 				while ((breakMatch = REGEX_BREAK.exec(cursorRange)) !== null && !cancel.isCancellationRequested) lastBreak = breakMatch.index + breakMatch[ 0 ].length;
-				if (cancel.isCancellationRequested) return undefined;
+				if (cancel.isCancellationRequested) return;
 
 				const beforeCursor: string = lastBreak < 0 ? cursorRange : cursorRange.slice(lastBreak);
 				if (triggerCharacterRegEx !== undefined && context.triggerCharacter === undefined && beforeCursor.match(triggerCharacterRegEx)?.index === 0) return;
@@ -144,7 +144,7 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 				if (globalVariable in provider._libraryItems) return new vscode.CompletionList(provider._libraryItems[ globalVariable ]);
 			}
 		}
-		return undefined;
+		return;
 	}
 	// For flags
 	private _provideFlagCompletion(provider: PowerlangCompletionProvider,
@@ -159,7 +159,7 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 			if (provider._includeFlags(term)) return new vscode.CompletionList(this._flagItems);
 			return new vscode.CompletionList(FLAG_ANNOTATION_ITEMS);
 		}
-		return undefined;
+		return;
 	}
 
 	private _loadGlobals(): void
