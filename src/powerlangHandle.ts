@@ -22,6 +22,10 @@ import { PowerlangParser } from "./powerlangParser";
 
 import { INTERNAL_NAME } from "./extension";
 // #endregion
+// #region Types
+export type PowerlangFunctionDescriptions = { [ global: string ]: PowerlangAPI; };
+export type PowerlangLibraryDescrptions = { [ library: string ]: PowerlangFunctionDescriptions; };
+// #endregion
 // #region Constants
 const VERSION_KEY: string = `${INTERNAL_NAME}-version`;
 // #endregion
@@ -30,7 +34,10 @@ export class PowerlangHandle
 {
 	// #region Variables
 	// #region Public
-	public flagAnnotations: { [flag: string]: string };
+	public flagAnnotations: { [ flag: string ]: string; };
+
+	public globalFunctionDescriptions: PowerlangFunctionDescriptions;
+	public globalLibraryDescriptions: PowerlangLibraryDescrptions;
 
 	public globalLibraries: PowerlangGlobal[];
 	public globalFunctions: PowerlangAPI[];
@@ -53,6 +60,9 @@ export class PowerlangHandle
 	public constructor(public readonly context: vscode.ExtensionContext)
 	{
 		// Just have to assign these by default because TS gets mad
+		this.globalFunctionDescriptions = {};
+		this.globalLibraryDescriptions = {};
+
 		this.flagAnnotations = {};
 
 		this.globalFunctions = [];
@@ -72,6 +82,18 @@ export class PowerlangHandle
 	}
 	public loadGlobals(globalLibraries: PowerlangGlobal[], globalFunctions: PowerlangAPI[]): void
 	{
+		this.globalFunctionDescriptions = globalFunctions.reduce((result: PowerlangFunctionDescriptions, globalFunction: PowerlangAPI): PowerlangFunctionDescriptions => ({
+			[ globalFunction.name ]: globalFunction,
+			...result
+		}), {});
+		this.globalLibraryDescriptions = globalLibraries.reduce((libraryResult: PowerlangLibraryDescrptions, globalLibrary: PowerlangGlobal): PowerlangLibraryDescrptions => ({
+			[ globalLibrary.name ]: globalLibrary.api.reduce((functionResult: PowerlangFunctionDescriptions, globalFunction: PowerlangAPI): PowerlangFunctionDescriptions => ({
+				[ globalFunction.name ]: globalFunction,
+				...functionResult
+			}), {}),
+			...libraryResult
+		}), {});
+
 		this.globalFunctions = globalFunctions;
 		this.globalLibraries = globalLibraries;
 		// Fire after setting; this will run on initialization too
