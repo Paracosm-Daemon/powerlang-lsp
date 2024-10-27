@@ -28,16 +28,16 @@ export class PowerlangColorProvider extends PowerlangProvider
 		const blue: string = (color.blue * COLOR_RANGE).toFixed(0);
 		const red: string = (color.red * COLOR_RANGE).toFixed(0);
 
-		return [ new vscode.ColorPresentation(`Color3.fromRGB(${red}, ${green}, ${blue})`) ];
+		return [ new vscode.ColorPresentation(`${red}, ${green}, ${blue}`) ];
 	}
 	public provideDocumentColors(document: vscode.TextDocument, _token: vscode.CancellationToken): vscode.ProviderResult<vscode.ColorInformation[]>
 	{
 		const documentColors: vscode.ColorInformation[] = [];
-		for (let lineIndex = 0; lineIndex < document.lineCount; lineIndex++)
+		for (let lineIndex: number = 0; lineIndex < document.lineCount; lineIndex++)
 		{
 			REGEX_COLOR.lastIndex = 0;
 
-			const lineText = document.lineAt(lineIndex).text;
+			const lineText: string = document.lineAt(lineIndex).text;
 			let colorMatch: RegExpExecArray | null;
 
 			while ((colorMatch = REGEX_COLOR.exec(lineText)) !== null)
@@ -50,7 +50,7 @@ export class PowerlangColorProvider extends PowerlangProvider
 				const red: number = Number.parseInt(groups.red);
 
 				documentColors.push(new vscode.ColorInformation(
-					new vscode.Range(lineIndex, colorMatch.index, lineIndex, colorMatch.index + colorMatch[ 0 ].length),
+					new vscode.Range(lineIndex, colorMatch.index + colorMatch[ 2 ].length, lineIndex, colorMatch.index + colorMatch[ 0 ].length - 1),
 					new vscode.Color(red / COLOR_RANGE, green / COLOR_RANGE, blue / COLOR_RANGE, 1.)
 				));
 			}
