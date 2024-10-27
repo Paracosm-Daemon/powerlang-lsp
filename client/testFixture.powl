@@ -51,6 +51,8 @@ while true {
 	SpawnPotato(position)
 }
 
+tonumber("123")
+
 @flag DoNotIncludeWatermark
 @flag AllowNoSemicolons;@fLaG whatTheFuck
 -- This is a comment
