@@ -81,7 +81,10 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 			? new RegExp(triggerCharacters.join("") + "$")
 			: undefined;
 		provider.handle.context.subscriptions.push(vscode.languages.registerCompletionItemProvider("powerlang", {
-			provideCompletionItems(document: vscode.TextDocument, position: vscode.Position, cancel: vscode.CancellationToken, context: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionList>
+			provideCompletionItems(document: vscode.TextDocument,
+				position: vscode.Position,
+				cancel: vscode.CancellationToken,
+				context: vscode.CompletionContext): vscode.ProviderResult<vscode.CompletionList>
 			{
 				const cursorRange: string = document.lineAt(position).text.substring(0, position.character);
 				// Find the latest declaration break so that we can autocomplete assignments/conditionals
@@ -94,7 +97,7 @@ export class PowerlangCompletionProvider extends PowerlangProvider
 				if (cancel.isCancellationRequested) return;
 
 				const beforeCursor: string = lastBreak < 0 ? cursorRange : cursorRange.slice(lastBreak);
-				if (triggerCharacterRegEx !== undefined && context.triggerCharacter === undefined && beforeCursor.match(triggerCharacterRegEx)?.index === 0) return;
+				if (triggerCharacterRegEx !== undefined && context.triggerCharacter === undefined && beforeCursor.search(triggerCharacterRegEx) <= 0) return;
 
 				return callback(provider, document, position, cancel, context, beforeCursor);
 			}

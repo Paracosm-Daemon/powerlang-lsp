@@ -48,7 +48,7 @@ export class PowerlangHandle
 	public readonly powerlangParser: PowerlangParser;
 
 	public readonly powerlangCompletion: PowerlangCompletionProvider;
-	public readonly powerlangHovering: PowerlangHoverProvider;
+	// public readonly powerlangHovering: PowerlangHoverProvider;
 	public readonly powerlangColoring: PowerlangColorProvider;
 	// #endregion
 	// #region Private
@@ -75,7 +75,7 @@ export class PowerlangHandle
 		this.powerlangParser = new PowerlangParser(this);
 
 		this.powerlangCompletion = new PowerlangCompletionProvider(this);
-		this.powerlangHovering = new PowerlangHoverProvider(this);
+		// this.powerlangHovering = new PowerlangHoverProvider(this);
 		this.powerlangColoring = new PowerlangColorProvider(this);
 
 		this._initialize();

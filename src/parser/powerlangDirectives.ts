@@ -30,7 +30,7 @@ export function declare(core: PowerlangCore, eventOverride: boolean = false): st
 	let breakCharacters: string = ("AllowNoSemicolons" in core.flags) ? ALLOWED_BREAK_CHARACTERS_FULL : ALLOWED_BREAK_CHARACTERS;
 	if (eventOverride) breakCharacters += "()";
 
-	const tokenizer: PowerlangTokenizer = new PowerlangTokenizer(core.source, pointer, breakCharacters);
+	const tokenizer: PowerlangTokenizer = new PowerlangTokenizer(core, breakCharacters);
 	return [];
 	/*
 	-- Let the core do its thing

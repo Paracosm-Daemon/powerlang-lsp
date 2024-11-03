@@ -32,26 +32,29 @@ export class PowerlangHoverProvider extends PowerlangProvider
 		let lastBreak: number = -1;
 
 		REGEX_BREAK.lastIndex = 0;
-		// Search for flags first
-		// #region Flags
+
 		while ((breakMatch = REGEX_BREAK.exec(cursorRange)) !== null && !cancel.isCancellationRequested) lastBreak = breakMatch.index + breakMatch[ 0 ].length;
 		if (cancel.isCancellationRequested) return;
-		// Get the start and end of the flag string
-		const flagBegin: string = lastBreak < 0 ? lineText : lineText.slice(lastBreak);
-		const flagEnd: number = flagBegin.search(REGEX_BREAK);
+		// Get the start and end of the string
+		const pathBegin: string = lastBreak < 0 ? lineText : lineText.slice(lastBreak);
+		const pathEnd: number = pathBegin.search(REGEX_BREAK);
 		// Substring if it breaks (semicolon/newline)
-		const flagFull: string = flagEnd < 0 ? flagBegin : flagBegin.substring(0, flagEnd);
+		const pathFull: string = pathEnd < 0 ? pathBegin : pathBegin.substring(0, pathEnd);
+		if (pathFull.length === 0) return;
+
+		const pathOffset: number = Math.max(0, lastBreak);
+		// Search for flags first
+		// #region Flags
 		// Make it uppercase, as the @FLAG annotation is in uppercase
-		const upperFlag: string = flagFull.toUpperCase();
+		const upperFlag: string = pathFull.toUpperCase();
 		const flagIndex: number = upperFlag.indexOf(FLAG_ANNOTATION);
 		// Check if it exists, then if the trimmed version (no whitespace) starts with the annotation
 		if (flagIndex >= 0 && upperFlag.trimStart().startsWith(FLAG_ANNOTATION))
 		{
-			const flagOffset: number = Math.max(0, lastBreak);
 			// This trims both sides since invalid flags could have spaces at the end
-			const flagName: string = flagFull.slice(FLAG_ANNOTATION.length).trim();
+			const flagName: string = pathFull.slice(FLAG_ANNOTATION.length).trim();
 			// Range has to be offset by the last break position
-			const flagRange: vscode.Range = new vscode.Range(cursorLine, flagOffset + flagIndex, cursorLine, flagOffset + flagFull.length);
+			const flagRange: vscode.Range = new vscode.Range(cursorLine, pathOffset + flagIndex, cursorLine, pathOffset + pathFull.length);
 			// Codeblocks markdown, has Powerlang syntax highlighting
 			const flagTitle: vscode.MarkdownString = new vscode.MarkdownString(`\`\`\`\n@flag ${flagName}\n\`\`\``);
 			// Check if it exists as a flag before inserting its description
@@ -71,26 +74,26 @@ export class PowerlangHoverProvider extends PowerlangProvider
 		}
 		// #endregion
 		// #region Paths
-		let pathMatch: RegExpExecArray | null;
-		let pathBreak: number = -1;
-
 		REGEX_PATH_BREAK.lastIndex = 0;
-		while ((pathMatch = REGEX_PATH_BREAK.exec(cursorRange)) !== null) pathBreak = pathMatch.index + pathMatch[ 0 ].length;
+		lastBreak = -1;
+		// TODO: FIX THIS
+		while ((breakMatch = REGEX_PATH_BREAK.exec(pathFull)) !== null && !cancel.isCancellationRequested) lastBreak = breakMatch.index + breakMatch[ 0 ].length;
+		if (cancel.isCancellationRequested) return;
 
-		const pathBegin: string = pathBreak < 0 ? lineText : lineText.slice(pathBreak);
-		const pathEnd: number = pathBegin.search(REGEX_PATH_BREAK);
+		console.warn(lastBreak, pathFull);
 
-		const fullPath: string = pathEnd < 0 ? pathBegin : pathBegin.substring(0, pathEnd);
-		if (fullPath.length === 0) return;
+		const traversalBegin: string = lastBreak < 0 ? pathFull : pathFull.slice(lastBreak);
+		const traversalEnd: number = traversalBegin.search(REGEX_PATH_BREAK);
 
-		const cursorTraversals: number = (pathEnd > cursorRange.length ? cursorRange : fullPath).split(".").length;
+		const traversalPath: string = traversalEnd < 0 ? traversalBegin : traversalBegin.substring(0, traversalEnd);
+		const cursorTraversals: number = (traversalEnd > (cursorPosition - pathOffset) ? lineText.substring(pathOffset, cursorPosition) : traversalPath).split(".").length;
+		console.warn(cursorTraversals, traversalBegin);
 		if (cursorTraversals === 0) return;
 
-		const pathTraversal: string[] = fullPath.split(".");
+		const pathTraversal: string[] = traversalPath.split(".");
 		const globalLibrary: string = pathTraversal[ 0 ];
 
 		const totalTraversals: number = pathTraversal.length;
-		const pathOffset: number = Math.max(0, pathBreak);
 		// This is either a global or just a variable
 		// #region Single destination
 		if (totalTraversals === 1)
@@ -150,7 +153,7 @@ export class PowerlangHoverProvider extends PowerlangProvider
 				`\`\`\`\n${globalLibrary}.${functionTitle}\n\`\`\``,
 				new vscode.MarkdownString(apiReference.description)
 			],
-			new vscode.Range(cursorLine, pathOffset, cursorLine, pathOffset + fullPath.length)
+			new vscode.Range(cursorLine, pathOffset, cursorLine, pathOffset + pathFull.length)
 		);
 		// #endregion
 		// #endregion

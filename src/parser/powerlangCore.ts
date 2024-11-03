@@ -5,7 +5,7 @@
 **/
 // TODO: I probably need to redo a lot of this stuff and research the tokenizer more because I have no idea what SharedContext and Context is
 // #region Enums
-export enum ErrorCodes
+export enum ErrorCode
 {
 	UnexpectedCharacter,
 	UnknownDirective,
@@ -31,7 +31,7 @@ export enum ErrorCodes
 	DeprecatedFeature,
 	NestedThread,
 }
-enum TokenTypes
+export enum TokenType
 {
 	Flag,
 	Keyword,
@@ -54,7 +54,7 @@ export const REGEX_VARIABLE: RegExp = /[A-Z_]+[A-Z0-9_-]*/i;
 export const REGEX_FLAG: RegExp = /@FLAG\s+/i;
 
 export const REGEX_PATH_BREAK: RegExp = /[^A-Z0-9_.]+/gi;
-export const REGEX_BREAK: RegExp = /[\n;]/g;
+export const REGEX_BREAK: RegExp = /[\n;{]/g;
 
 export const VARIABLE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_-.1234567890";
 export const DIRECTIVE_ALLOWED_CHARACTERS: string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ@-";
@@ -66,6 +66,10 @@ export const DECLARATION_BREAKS: string = "\n;";
 export const DIRECTIVE_BREAKS: string = DECLARATION_BREAKS + " ";
 
 export const FLAG_ANNOTATION: string = "@FLAG";
+export const BOOLEANS: string[] = [
+	"false",
+	"true"
+]
 export const LOGIC_GATES: string[] = [
 	"and",
 	"not",
@@ -79,7 +83,7 @@ import { PowerlangHandle } from "../powerlangHandle";
 import { INTERNAL_NAME } from "../extension";
 // #endregion
 // #region Constants
-const REGEX_DIRECTIVE_BREAK: RegExp = /(;|\n| )+/g; // /[^;\n ]*/g;
+const REGEX_DIRECTIVE_BREAK: RegExp = /[;\n ]+/; // /[^;\n ]*/g;
 const REGEX_CARRIAGE: RegExp = /\r/g;
 const REGEX_SEARCH: RegExp = /\S+/;
 // #endregion
@@ -122,6 +126,8 @@ export class PowerlangCore
 	// #region Private
 	private _parse(): void
 	{
+		if (true == true) return
+
 		const maxTokenizationLength: number | undefined = vscode.workspace.getConfiguration("editor").get<number>("maxTokenizationLineLength");
 		const lineCount: number = this.source.split("\n").length;
 
@@ -130,6 +136,39 @@ export class PowerlangCore
 
 		let directiveStart: number = pointer.pointerIndex = 0;
 		let currentToken: string[] = [];
+
+		while (pointer.pointerIndex < this.sourceLength)
+		{
+			const readCharacter: string = this.source[ pointer.pointerIndex ];
+			if (currentToken.length === 0 && INDENTATION_CHARACTERS.includes(readCharacter))
+			{
+				pointer.increment();
+				continue;
+			}
+			if (DIRECTIVE_BREAKS.includes(readCharacter))
+			{
+				const directive: string = currentToken.join("").toUpperCase();
+				handleDirective(this, directive, directiveStart);
+
+				directiveStart = pointer.pointerIndex;
+				currentToken = [];
+
+				continue;
+			}
+			if (!DIRECTIVE_ALLOWED_CHARACTERS.includes(readCharacter.toUpperCase()))
+			{
+				pointer.pointerIndex = directiveStart;
+				declare(this);
+
+				directiveStart = pointer.pointerIndex;
+				currentToken = [];
+
+				continue;
+			}
+
+			currentToken.push(readCharacter);
+			pointer.increment();
+		}
 
 		// while (pointer.pointerIndex < this.sourceLength)
 		// {

@@ -1,24 +1,69 @@
 "use strict";
 // #region Imports
+import { PowerlangCore, TokenType, BOOLEANS, OPERATORS, LOGIC_GATES } from "./powerlangCore";
 import { PowerlangPointer } from "./powerlangPointer";
 // #endregion
 // #region Types
 export type PowerlangToken = {
 	content: string;
-	type: string;
+	type: TokenType;
 };
 // #endregion
 // #region Classes
 export class PowerlangTokenizer
 {
 	// #region Variables
+	// #region Public
 	public readonly tokens: PowerlangToken[];
+	// #endregion
+	// #region Private
+	private _directiveStart: number;
+	private _currentToken: string[];
+
+	private _bracketCount: number;
+	private _currentType?: TokenType;
+	// #endregion
 	// #endregion
 	// #region Functions
 	// #region Public
-	public constructor(source: string, pointer: PowerlangPointer, parseUntil: string = ";}")
+	public constructor(private readonly _core: PowerlangCore, parseUntil: string = ";}")
 	{
+		const pointer: PowerlangPointer = _core.pointer;
 		this.tokens = [];
+
+		this._directiveStart = pointer.pointerIndex = 0;
+		this._currentToken = [];
+
+		this._bracketCount = 0;
+
+		let previousType: TokenType | undefined;
+		while (pointer.pointerIndex < _core.sourceLength)
+		{
+			const readCharacter: string = pointer.getPointedCharacter();
+			if (parseUntil.includes(readCharacter))
+			{
+				// TODO: Exception handling correctly
+				if (this._currentType === TokenType.String)
+				{
+					console.warn("Unclosed string");
+					break;
+				}
+				if (readCharacter == "\n" && ("MultilineCallsTest" in _core.flags) && this._bracketCount > 0)
+				{
+					if (this._currentType !== undefined) previousType = this._currentType;
+
+					this._applyCurrentToken();
+					pointer.increment();
+
+					continue;
+				}
+
+				this._applyCurrentToken();
+				pointer.increment();
+
+				break;
+			}
+		}
 		// Source:string, MainPointer:SharedClasses.Pointer, SharedContext:SharedClasses.SharedContext, ExecutableContext:SharedClasses.ExecutableContext, ParseUntil, Core
 
 		/*
@@ -30,24 +75,6 @@ export class PowerlangTokenizer
 		local CurrentlyParsingTokenType = nil
 		local BracketCount = 0
 		local Tokens = {}
-		local function ApplyCurrentToken()
-			if CurrentlyParsingTokenType then
-				if CurrentlyParsingTokenType == "Variable" then
-					if table.find(SyntaxBasics.LogicGates, CurrentlyParsing) then
-						CurrentlyParsingTokenType = "Operator"
-					end
-					if table.find({"true", "false"}, CurrentlyParsing) then
-						CurrentlyParsingTokenType = "Boolean"
-					end
-				end
-				if CurrentlyParsingTokenType == "Number" and CurrentlyParsing == "-" then
-					CurrentlyParsingTokenType = "Operator"
-				end
-				table.insert(Tokens, NewToken(CurrentlyParsing, CurrentlyParsingTokenType))
-				CurrentlyParsing = ""
-				CurrentlyParsingTokenType = nil
-			end
-		end
 		while MainPointer.PointingTo < MainPointer.Maximum do
 			local Character = MainPointer:GetPointedCharacter(Source)
 			-- Specials
@@ -211,7 +238,54 @@ export class PowerlangTokenizer
 	}
 	// #endregion
 	// #region Private
+	private _applyCurrentToken(): void
+	{
+		if (this._currentType === undefined) return;
 
+		const currentParsed: string = this._currentToken.join("");
+		this._currentToken = [];
+
+		switch (this._currentType)
+		{
+			case TokenType.Variable:
+				{
+					if (LOGIC_GATES.includes(currentParsed)) this._currentType = TokenType.Boolean;
+					else if (BOOLEANS.includes(currentParsed)) this._currentType = TokenType.Operator;
+
+					break;
+				}
+			case TokenType.Number:
+				{
+					if (currentParsed == "-") this._currentType = TokenType.Operator;
+					break;
+				}
+		}
+		this.tokens.push({
+			content: currentParsed,
+			type: this._currentType
+		});
+		this._currentType = undefined;
+		/*
+			local function ApplyCurrentToken()
+				if CurrentlyParsingTokenType then
+					if CurrentlyParsingTokenType == "Variable" then
+						if table.find(SyntaxBasics.LogicGates, CurrentlyParsing) then
+							CurrentlyParsingTokenType = "Operator"
+						end
+						if table.find({"true", "false"}, CurrentlyParsing) then
+							CurrentlyParsingTokenType = "Boolean"
+						end
+					end
+					if CurrentlyParsingTokenType == "Number" and CurrentlyParsing == "-" then
+						CurrentlyParsingTokenType = "Operator"
+					end
+					table.insert(Tokens, NewToken(CurrentlyParsing, CurrentlyParsingTokenType))
+					CurrentlyParsing = ""
+					CurrentlyParsingTokenType = nil
+				end
+			end
+		*/
+	}
 	// #endregion
 	// #endregion
 }
