@@ -126,8 +126,7 @@ export class PowerlangCore
 	// #region Private
 	private _parse(): void
 	{
-		if (true == true) return
-
+		/*
 		const maxTokenizationLength: number | undefined = vscode.workspace.getConfiguration("editor").get<number>("maxTokenizationLineLength");
 		const lineCount: number = this.source.split("\n").length;
 
@@ -169,6 +168,7 @@ export class PowerlangCore
 			currentToken.push(readCharacter);
 			pointer.increment();
 		}
+		*/
 
 		// while (pointer.pointerIndex < this.sourceLength)
 		// {
